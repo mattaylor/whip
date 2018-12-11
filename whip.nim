@@ -18,10 +18,15 @@ type Whip = object
   router: Router[Handler]
   fastGet: TableRef[string, Handler]
   fastPut: TableRef[string, Handler]
+  fastPost: TableRef[string, Handler]
+  fastDelete: TableRef[string, Handler]
+  fastErr: TableRef[string, Handler]
 
 proc send*(my: Wreq, data: JsonNode)  = my.req.send(Http200, $data, JSON_HEADER)
 
-proc send*[T](my: Wreq, data: T) = my.req.send(Http200, $data, TEXT_HEADER) 
+proc send*(my: Wreq, data: string) = my.req.send(Http200, data, TEXT_HEADER) 
+
+proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) = my.req.send(Http200, $data, headers) 
 
 proc `%`*(t : StringTableRef): JsonNode =
   result = newJObject()
@@ -61,28 +66,37 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
 proc initWhip*(): Whip = Whip(
   router: newRouter[Handler](), 
   fastGet: newTable[string, Handler](),
-  fastPut: newTable[string, Handler]()
+  fastPut: newTable[string, Handler](),
+  fastPost: newTable[string, Handler](),
+  fastDelete: newTable[string, Handler](),
+  fastErr: newTable[string, Handler]()
 )
-
-proc onGet*(my: Whip, path: string, h: Handler) = 
-  if path.contains('{'): my.router.map(h, $GET, path)
-  else: my.fastGet[path] = h
-
-proc onPut*(my: Whip, path: string, h: Handler) = my.router.map(h, $PUT, path)
-
-proc onPost*(my: Whip, path: string, h: Handler) = my.router.map(h, $POST, path)
-
-proc onDelete*(my: Whip, path: string, h: Handler) = my.router.map(h, $DELETE, path)
 
 proc fastRoutes*(my: Whip, meth: HttpMethod): TableRef[string, Handler] =
   case meth
   of HttpGet: my.fastGet
   of HttpPut: my.fastPut
-  else: raise newException(Exception, "Invalid Method")
+  of HttpPost: my.fastPut
+  of HttpDelete: my.fastPut
+  else: my.fastErr
+
+proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
+  for m in meths:
+    if path.contains('{'): my.router.map(handle, toLower($m), path)
+    else: my.fastRoutes(m)[path] = handle
+  
+proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
+
+proc onPut*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPut])
+
+proc onPost*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPost])
+
+proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDelete])
+
 
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
-  run(proc (req:Request):Future[void] {.closure.} = 
+  run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
     let path = req.path.get()
     let meth = req.httpMethod.get()
     let fast = my.fastRoutes(meth)

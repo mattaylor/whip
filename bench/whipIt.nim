@@ -3,9 +3,12 @@ import ../whip, sugar, json
 let w = initWhip()
 
 #w.onGet "/test", (r:Wreq) => r.send(%r)
-w.onGet "/text", (r:Wreq) => r.send("hello world")
-w.onGet "/json", (r:Wreq) => r.send(%{"result": %"hello world"})
-w.onGet "/json/{name}", (w:Wreq) => w.send(%*{ "result": "hello " & w.path("name")})
-w.onGet "/text/{name}", (w:Wreq) => w.send("hello " & w.path("name"))
+const JSON_DATA = $(%*{"result": "hello world"})
+const TEXT_DATA = "Hello World"
+
+w.onGet "/text", (r:Wreq) => r.send(TEXT_DATA)
+w.onGet "/json", (r:Wreq) => r.send(JSON_DATA)
+w.onGet "/json/{name}", (r:Wreq) => r.send(%*{ "hello": r.path("name")})
+w.onGet "/text/{name}", (r:Wreq) => r.send("hello " & r.path("name"))
 
 w.start(8000)

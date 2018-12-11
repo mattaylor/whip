@@ -1,12 +1,19 @@
 import options, asyncdispatch, json
 
-import httpbeast
+import options, asyncdispatch, json, httpbeast
 
 proc onRequest(req: Request): Future[void] =
   if req.httpMethod == some(HttpGet):
     case req.path.get()
-    of "/json": req.send(Http200, $(%*{"result": "Hello World!"}))
-    of "/text": req.send(Http200, "Hello World!", "Content-Type: text/plain")
-    else: req.send(Http404)
+    of "/json":
+      const data = $(%*{"message": "Hello, World!"})
+      const headers = "Content-Type: application/json"
+      req.send(Http200, data, headers)
+    of "/text":
+      const data = "Hello, World!"
+      const headers = "Content-Type: text/plain"
+      req.send(Http200, data, headers)
+    else:
+      req.send(Http404)
 
 run(onRequest)

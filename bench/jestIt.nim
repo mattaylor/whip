@@ -1,19 +1,14 @@
-import jester, json, asyncdispatch
+import jester, json
+
+const JSON_DATA = $(%*{"result": "hello world"})
+const TEXT_DATA = "Hello World"
+const JSON_TYPE = "application/json"
+const TEXT_TYPE = "text/plain"
 
 routes:
-  get "/text": resp "Hello world"
-  get "/json": resp %*{"result": %"Hello World"}
-  get "/text/@name": resp "Hello " & @"name"
-  get "/json/@name": resp %*{"result": "Hello " & @"name"}
-  #[
-else:
-  proc match(request: Request): Future[ResponseData] {.async.} =
-    case request.path
-    of "/":
-      result = (TCActionSend, Http200, {:}.newHttpHeaders, "Hello World!", true)
-    else:
-      result = (TCActionSend, Http404, {:}.newHttpHeaders, "Y'all got lost", true)
-  var j = initJester(match)
-  j.serve()
-]#
-runForever()
+  get "/text": resp TEXT_DATA, TEXT_TYPE
+  get "/json": resp JSON_DATA, JSON_TYPE
+  get "/text/@name": resp "Hello " & @"name", TEXT_TYPE
+  get "/json/@name": resp $(%*{"hello": @"name"}), JSON_TYPE
+
+#runForever()
