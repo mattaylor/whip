@@ -14,8 +14,6 @@ w.start()
 
 ## Its Fast. 
 
-But not as fast as gingonic
-
 V unscientific benchmarks...
 
 Framework     | Lang | `/text/{name}`| `/json/{name}`| `/text`      | `/json`
