@@ -1,4 +1,5 @@
 import ../whip, sugar, json
+{.checks: off, optimization: speed.}
 
 let w = initWhip()
 

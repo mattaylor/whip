@@ -1,4 +1,5 @@
 import jester, json
+{.checks: off, optimization: speed.}
 
 const JSON_DATA = $(%*{"result": "hello world"})
 const TEXT_DATA = "Hello World"

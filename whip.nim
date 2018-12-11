@@ -1,5 +1,6 @@
 import asyncdispatch, URI, options, json, httpbeast, nest, elvis, httpcore, tables, strutils, strtabs
 
+
 const JSON_HEADER = "Content-Type: text/plain"
 const TEXT_HEADER = "Content-Type: application/json"
 
@@ -12,7 +13,7 @@ type Wreq* = object
   query*: StringTableRef
   param*: StringTableRef
   
-type Handler = proc (r: Wreq) {.gcsafe.}
+type Handler = func (r: Wreq) {.gcsafe.}
 
 type Whip = object 
   router: Router[Handler]
@@ -33,21 +34,21 @@ proc `%`*(t : StringTableRef): JsonNode =
   if t == nil: return
   for i,v in t: result.add(i,%v)
 
-proc path*(my: Wreq): string = my.req.path.get
+func path*(my: Wreq): string = my.req.path.get
 
-proc header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
+func header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
 
-proc headers*(my: Wreq): TableRef[string, seq[string]] = my.req.headers.get().table
+func headers*(my: Wreq): TableRef[string, seq[string]] = my.req.headers.get().table
 
-proc path*(my: Wreq, key:string): string = my.param[key]
+func path*(my: Wreq, key:string): string = my.param[key]
 
-proc query*(my: Wreq, key:string): string = my.query[key]
+func query*(my: Wreq, key:string): string = my.query[key]
 
 proc body*(my: Wreq): JsonNode = parseJson(my.req.body.get()) ?: JsonNode() 
 
-#proc json*(my: Wreq): JsonNode = parseJson(my.req.body.get() ?: "")
+#func json*(my: Wreq): JsonNode = parseJson(my.req.body.get() ?: "")
 
-#proc text*(my: Wreq): string = my.req.body.get() ?: ""
+#func text*(my: Wreq): string = my.req.body.get() ?: ""
 
 proc `%`*(my:Wreq): JsonNode = %*{
   "path": my.req.path.get(),
@@ -63,7 +64,7 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   JSON_HEADER
 )
 
-proc initWhip*(): Whip = Whip(
+func initWhip*(): Whip = Whip(
   router: newRouter[Handler](), 
   fastGet: newTable[string, Handler](),
   fastPut: newTable[string, Handler](),
@@ -72,7 +73,7 @@ proc initWhip*(): Whip = Whip(
   fastErr: newTable[string, Handler]()
 )
 
-proc fastRoutes*(my: Whip, meth: HttpMethod): TableRef[string, Handler] =
+func fastRoutes*(my: Whip, meth: HttpMethod): TableRef[string, Handler] =
   case meth
   of HttpGet: my.fastGet
   of HttpPut: my.fastPut
@@ -92,7 +93,6 @@ proc onPut*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPut])
 proc onPost*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPost])
 
 proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDelete])
-
 
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()

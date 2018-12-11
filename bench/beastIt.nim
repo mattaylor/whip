@@ -1,6 +1,7 @@
 import options, asyncdispatch, json
 
 import options, asyncdispatch, json, httpbeast
+{.checks: off, optimization: speed.}
 
 proc onRequest(req: Request): Future[void] =
   if req.httpMethod == some(HttpGet):
