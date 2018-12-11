@@ -9,15 +9,15 @@ type Opts = object
 
 type Wreq* = object
   req: Request
-  #args*: RoutingArgs
   query*: StringTableRef
   param*: StringTableRef
-  #headers: StringTableRef
-
+  
 type Handler = proc (r: Wreq) {.gcsafe.}
 
 type Whip = object 
   router: Router[Handler]
+  fastGet: TableRef[string, Handler]
+  fastPut: TableRef[string, Handler]
 
 proc send*(my: Wreq, data: JsonNode)  = my.req.send(Http200, $data, JSON_HEADER)
 
@@ -44,8 +44,8 @@ proc body*(my: Wreq): JsonNode = parseJson(my.req.body.get()) ?: JsonNode()
 
 #proc text*(my: Wreq): string = my.req.body.get() ?: ""
 
-proc `%`*(my:Wreq): JsonNode = %*{ 
-  "path": my.req.path.get(), 
+proc `%`*(my:Wreq): JsonNode = %*{
+  "path": my.req.path.get(),
   "body": my.body(),
   "method": my.req.httpMethod.get(),
   "query": my.query,
@@ -58,9 +58,15 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   JSON_HEADER
 )
 
-proc initWhip*(): Whip = Whip(router: newRouter[Handler]())
+proc initWhip*(): Whip = Whip(
+  router: newRouter[Handler](), 
+  fastGet: newTable[string, Handler](),
+  fastPut: newTable[string, Handler]()
+)
 
-proc onGet*(my: Whip, path: string, h: Handler) = my.router.map(h, $GET, path)
+proc onGet*(my: Whip, path: string, h: Handler) = 
+  if path.contains('{'): my.router.map(h, $GET, path)
+  else: my.fastGet[path] = h
 
 proc onPut*(my: Whip, path: string, h: Handler) = my.router.map(h, $PUT, path)
 
@@ -68,12 +74,24 @@ proc onPost*(my: Whip, path: string, h: Handler) = my.router.map(h, $POST, path)
 
 proc onDelete*(my: Whip, path: string, h: Handler) = my.router.map(h, $DELETE, path)
 
+proc fastRoutes*(my: Whip, meth: HttpMethod): TableRef[string, Handler] =
+  case meth
+  of HttpGet: my.fastGet
+  of HttpPut: my.fastPut
+  else: raise newException(Exception, "Invalid Method")
+
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure.} = 
-    var route = my.router.route($req.httpMethod.get(),parseUri(req.path.get()))
-    if route.status != routingSuccess: req.error()
-    else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
+    let path = req.path.get()
+    let meth = req.httpMethod.get()
+    let fast = my.fastRoutes(meth)
+    #if fast.len > 0 and fast.hasKey(path): fast[path](Wreq(req:req)) 
+    if fast.hasKey(path): fast[path](Wreq(req:req)) 
+    else: 
+      let route = my.router.route($meth,parseUri(path))
+      if route.status != routingSuccess: req.error()
+      else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
   , Settings(port:Port(port)))
 
 when isMainModule: import tests
