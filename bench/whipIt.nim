@@ -3,7 +3,6 @@ import ../whip, sugar, json
 
 let w = initWhip()
 
-#w.onGet "/test", (r:Wreq) => r.send(%r)
 const JSON_DATA = $(%*{"result": "hello world"})
 const TEXT_DATA = "Hello World"
 

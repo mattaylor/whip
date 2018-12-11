@@ -1,6 +1,5 @@
 import asyncdispatch, URI, options, json, httpbeast, nest, elvis, httpcore, tables, strutils, strtabs
 
-
 const JSON_HEADER = "Content-Type: text/plain"
 const TEXT_HEADER = "Content-Type: application/json"
 
@@ -13,15 +12,11 @@ type Wreq* = object
   query*: StringTableRef
   param*: StringTableRef
   
-type Handler = func (r: Wreq) {.gcsafe.}
+type Handler = proc (r: Wreq) {.gcsafe.}
 
 type Whip = object 
   router: Router[Handler]
-  fastGet: TableRef[string, Handler]
-  fastPut: TableRef[string, Handler]
-  fastPost: TableRef[string, Handler]
-  fastDelete: TableRef[string, Handler]
-  fastErr: TableRef[string, Handler]
+  fastReq: TableRef[HttpMethod, TableRef[string, Handler]]
 
 proc send*(my: Wreq, data: JsonNode)  = my.req.send(Http200, $data, JSON_HEADER)
 
@@ -46,10 +41,6 @@ func query*(my: Wreq, key:string): string = my.query[key]
 
 proc body*(my: Wreq): JsonNode = parseJson(my.req.body.get()) ?: JsonNode() 
 
-#func json*(my: Wreq): JsonNode = parseJson(my.req.body.get() ?: "")
-
-#func text*(my: Wreq): string = my.req.body.get() ?: ""
-
 proc `%`*(my:Wreq): JsonNode = %*{
   "path": my.req.path.get(),
   "body": my.body(),
@@ -64,27 +55,16 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   JSON_HEADER
 )
 
-func initWhip*(): Whip = Whip(
-  router: newRouter[Handler](), 
-  fastGet: newTable[string, Handler](),
-  fastPut: newTable[string, Handler](),
-  fastPost: newTable[string, Handler](),
-  fastDelete: newTable[string, Handler](),
-  fastErr: newTable[string, Handler]()
-)
-
-func fastRoutes*(my: Whip, meth: HttpMethod): TableRef[string, Handler] =
-  case meth
-  of HttpGet: my.fastGet
-  of HttpPut: my.fastPut
-  of HttpPost: my.fastPut
-  of HttpDelete: my.fastPut
-  else: my.fastErr
+func initWhip*(): Whip = 
+  let w = Whip(router: newRouter[Handler](), fastReq: newTable[HttpMethod, TableRef[string, Handler]]())
+  for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
+    w.fastReq[m] = newTable[string, Handler]()
+  w
 
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
   for m in meths:
     if path.contains('{'): my.router.map(handle, toLower($m), path)
-    else: my.fastRoutes(m)[path] = handle
+    else: my.fastReq[m][path] = handle
   
 proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
 
@@ -99,8 +79,7 @@ proc start*(my: Whip, port:int = 8080) =
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
     let path = req.path.get()
     let meth = req.httpMethod.get()
-    let fast = my.fastRoutes(meth)
-    #if fast.len > 0 and fast.hasKey(path): fast[path](Wreq(req:req)) 
+    let fast = my.fastReq[meth]
     if fast.hasKey(path): fast[path](Wreq(req:req)) 
     else: 
       let route = my.router.route($meth,parseUri(path))
