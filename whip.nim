@@ -56,13 +56,8 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   JSON_HEADER
 )
 
-func initWreq(req:Request, parts:seq[string]):Wreq = 
-  let w = Wreq(req:req, query:newStringTable(), param:newStringTable())
-  if parts.len > 1:
-    for p in parts[1].split('&'):
-      let q = p.split('=')
-      w.query[q[0]] = q[1]
-  w
+func parseQuery*(query: string): StringTableRef = 
+  newStringTable(query.split({'&','='}), modeCaseSensitive)
 
 func initWhip*(): Whip = 
   let w = Whip(router: newRouter[Handler](), fastReq: newTable[HttpMethod, TableRef[string, Handler]]())
@@ -86,12 +81,12 @@ proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDel
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
-    let path = req.path.get().split('?')
+    let uri = parseUri(req.path.get())
     let meth = req.httpMethod.get()
     let fast = my.fastReq[meth]
-    if fast.hasKey(path[0]): fast[path[0]](initWreq(req, path))
+    if fast.hasKey(uri.path): fast[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
     else: 
-      let route = my.router.route($meth,parseUri(req.path.get))
+      let route = my.router.route($meth,uri)
       if route.status != routingSuccess: req.error()
       else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
   , Settings(port:Port(port)))
