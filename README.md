@@ -1,9 +1,8 @@
 # WHIP
 
-WHIP is a high performance web server based on the excellend https://github.com/dom96/httpbeast with routing based on https://github.com/kedean/nest and some extra optimsiations thrown in for good measure. 
+WHIP is a high performance web application server based on the excellend https://github.com/dom96/httpbeast with routing based on https://github.com/kedean/nest and some extra optimsiations thrown in for good measure. 
 
-WHIP is still a work in progress, but performance numbers look pretty good so far -
-Upto 3x faster than Jester for some tasks (see below). 
+WHIP is zstill in development and is not recomended for production use. Much is still missing or untested but for basic api use cases however, the performance numbers look pretty good so far (see below). 
 
 ## Its Simple
 
@@ -33,4 +32,18 @@ eg
 ```bash
 > wrk http://localhost:8000/text
 ```
-## Its Cool.
+
+## Its a WIP 
+
+coming soon..
+
+- middleware api
+- websockets (mqtt) 
+- swagger docs
+- smarter headers 
+- session storage (redis)
+- sql db adapters (postgrest, graphql)
+- smart caching
+- static html serving
+- html templates (jade)
+- authentication (oauth, jwt)
