@@ -5,7 +5,7 @@ proc onRequest(req: Request): Future[void] =
   if req.httpMethod == some(HttpGet):
     case req.path.get()
     of "/json":
-      const data = $(%*{"message": "Hello World!"})
+      const data = $(%*{"result": "Hello World!"})
       const headers = "Content-Type: application/json"
       req.send(Http200, data, headers)
     of "/text":
