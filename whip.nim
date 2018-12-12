@@ -78,11 +78,10 @@ proc start*(my: Whip, port:int = 8080) =
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
     let uri = parseUri(req.path.get())
-    let meth = req.httpMethod.get()
-    let fast = my.fastReq[meth]
+    let fast = my.fastReq[req.httpMethod.get()]
     if fast.hasKey(uri.path): fast[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
     else: 
-      let route = my.router.route($meth,uri)
+      let route = my.router.route($req.httpMethod.get(),uri)
       if route.status != routingSuccess: req.error()
       else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
   , Settings(port:Port(port)))
