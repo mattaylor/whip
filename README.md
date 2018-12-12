@@ -47,3 +47,4 @@ Coming soon..
 - static html serving
 - html templates (jade)
 - authentication (oauth, jwt)
+- aws lambda interop
