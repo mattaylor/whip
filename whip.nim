@@ -57,7 +57,7 @@ func parseQuery*(query: string): StringTableRef =
   newStringTable(query.split({'&','='}), modeCaseSensitive)
 
 func initWhip*(): Whip = 
-  let w = Whip(router: newRouter[Handler](), fastReq: newTable[HttpMethod, TableRef[string, Handler]]())
+  let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, TableRef[string, Handler]]())
   for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
     w.simple[m] = newTable[string, Handler]()
   w
@@ -65,7 +65,7 @@ func initWhip*(): Whip =
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
   for meth in meths:
     if path.contains('{'): my.router.map(handle, toLower($meth), path)
-    else: my.faster[meth][path] = handle
+    else: my.simple[meth][path] = handle
   
 proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
 
