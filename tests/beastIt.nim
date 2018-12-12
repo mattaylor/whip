@@ -5,11 +5,11 @@ proc onRequest(req: Request): Future[void] =
   if req.httpMethod == some(HttpGet):
     case req.path.get()
     of "/json":
-      const data = $(%*{"result": "Hello World!"})
+      const data = $(%*{"result": "hello world"})
       const headers = "Content-Type: application/json"
       req.send(Http200, data, headers)
     of "/text":
-      const data = "Hello World!"
+      const data = "hello world"
       const headers = "Content-Type: text/plain"
       req.send(Http200, data, headers)
   else: req.send(Http404)
