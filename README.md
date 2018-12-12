@@ -1,5 +1,9 @@
-# whip
+# WHIP
 
+WHIP is a high performance web server based on the excellend https://github.com/dom96/httpbeast with routing based on https://github.com/kedean/nest and some extra optimsiations thrown in for good measure. 
+
+WHIP is still a work in progress, but performance numbers look pretty good so far -
+Upto 3x faster than Jester for some tasks (see below). 
 
 ## Its Simple
 
@@ -29,3 +33,4 @@ eg
 ```bash
 > wrk http://localhost:8000/text
 ```
+## Its Cool.
