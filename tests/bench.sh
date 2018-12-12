@@ -3,7 +3,7 @@
 runBench () {
   sleep 5
   echo Benchmarking $1
-  for path in text #json text/whip json/whip 
+  for path in text json text/whip json/whip 
   do
     wrk http://localhost:$2/$path
     #wrk --timeout 30s -s pipeline.lua http://localhost:$2/$path -- 40

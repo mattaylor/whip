@@ -12,12 +12,14 @@ type Handler = proc (r: Wreq) {.gcsafe.}
 
 type Whip = object 
   router: Router[Handler]
-  fastReq: TableRef[HttpMethod, TableRef[string, Handler]]
+  simple: TableRef[HttpMethod, TableRef[string, Handler]]
+  docDir: string
+  binDir: string
+
 
 proc send*(my: Wreq, data: JsonNode)  = my.req.send(Http200, $data, JSON_HEADER)
 
 proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) = my.req.send(Http200, $data, headers) 
-
 
 proc `%`*(t : StringTableRef): JsonNode =
   result = newJObject()
@@ -57,13 +59,13 @@ func parseQuery*(query: string): StringTableRef =
 func initWhip*(): Whip = 
   let w = Whip(router: newRouter[Handler](), fastReq: newTable[HttpMethod, TableRef[string, Handler]]())
   for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
-    w.fastReq[m] = newTable[string, Handler]()
+    w.simple[m] = newTable[string, Handler]()
   w
 
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
   for meth in meths:
     if path.contains('{'): my.router.map(handle, toLower($meth), path)
-    else: my.fastReq[meth][path] = handle
+    else: my.faster[meth][path] = handle
   
 proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
 
@@ -76,9 +78,9 @@ proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDel
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
-    let fast = my.fastReq[req.httpMethod.get()]
+    let sim = my.simple[req.httpMethod.get()]
     let uri = parseUri(req.path.get())
-    if fast.hasKey(uri.path): fast[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
+    if sim.hasKey(uri.path): sim[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
     else: 
       let route = my.router.route($req.httpMethod.get(),uri)
       if route.status != routingSuccess: req.error()
