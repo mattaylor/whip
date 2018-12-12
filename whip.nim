@@ -16,10 +16,9 @@ type Whip = object
   docDir: string
   binDir: string
 
+proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) {.inline.} = my.req.send(Http200, $data, headers) 
 
-proc send*(my: Wreq, data: JsonNode)  = my.req.send(Http200, $data, JSON_HEADER)
-
-proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) = my.req.send(Http200, $data, headers) 
+proc send*(my: Wreq, data: JsonNode) {.inline.} =  my.send($data, JSON_HEADER)
 
 proc `%`*(t : StringTableRef): JsonNode =
   result = newJObject()
@@ -36,7 +35,7 @@ func path*(my: Wreq, key:string): string = my.param[key]
 
 func query*(my: Wreq, key:string): string = my.query[key]
 
-proc body*(my: Wreq): JsonNode = 
+proc body*(my: Wreq): JsonNode  = 
   if my.req.body.get == "": JsonNode() else: parseJson(my.req.body.get()) 
 
 proc `%`*(my:Wreq): JsonNode = %*{
@@ -53,10 +52,10 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   JSON_HEADER
 )
 
-func parseQuery*(query: string): StringTableRef = 
+func parseQuery*(query: string): StringTableRef {.inline.} = 
   newStringTable(query.split({'&','='}), modeCaseSensitive)
 
-func initWhip*(): Whip = 
+func initWhip*(): Whip {.inline.} = 
   let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, TableRef[string, Handler]]())
   for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
     w.simple[m] = newTable[string, Handler]()
@@ -75,7 +74,7 @@ proc onPost*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPost]
 
 proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDelete])
 
-proc start*(my: Whip, port:int = 8080) {.inline.} = 
+proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
     let sim = my.simple[req.httpMethod.get()]
