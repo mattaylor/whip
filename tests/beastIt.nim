@@ -12,6 +12,6 @@ proc onRequest(req: Request): Future[void] =
       const data = "hello world"
       const headers = "Content-Type: text/plain"
       req.send(Http200, data, headers)
-  else: req.send(Http404)
+    else: req.send(Http404)
 
 run(onRequest)
