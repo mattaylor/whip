@@ -3,10 +3,6 @@ import URI, options, json, asyncdispatch, httpbeast, nest, elvis, httpcore, tabl
 const JSON_HEADER = "Content-Type: text/plain"
 const TEXT_HEADER = "Content-Type: application/json"
 
-type Opts = object
-  port*: Port
-  bindAddr*: string
-
 type Wreq* = object
   req: Request
   query*: StringTableRef
