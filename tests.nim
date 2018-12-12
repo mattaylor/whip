@@ -5,6 +5,7 @@ const TEXT_DATA = "hello world"
 proc testServe() {.thread.} =
   let w = initWhip()
   w.onPost "/test/{name}", (r:Wreq) => r.send(%r)
+  w.onGet "/test", (r:Wreq) => r.send(%r)
   w.onGet "/text", (r:Wreq) => r.send(TEXT_DATA)
   w.onGet "/json", (r:Wreq) => r.send(%*{"result": TEXT_DATA})
   w.onGet "/text/{name}", (w:Wreq) => w.send("hello " & w.path("name"))
@@ -42,5 +43,13 @@ proc runTests() {.async.} =
     test "param": check(b["param"]["name"].getStr() == "whip")
     test "query": check(b["query"]["key1"].getStr() == "val1")
     test "method": check(b["method"].getStr() == "POST")
+  
+  suite "GET /test":
+    let p = "/test?key1=val1"
+    let r = await c.get(HOST & p)
+    let b = parseJson(await r.body)
+    test "path": check(b["path"].getStr() == p)
+    test "query": check(b["query"]["key1"].getStr() == "val1")
+    test "method": check(b["method"].getStr() == "GET")
   
 waitFor runTests()
