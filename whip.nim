@@ -1,7 +1,7 @@
-import URI, options, json, asyncdispatch, httpbeast, nest, elvis, httpcore, tables, strutils, strtabs
+import URI, options, json, asyncdispatch, httpbeast, nest, httpcore, tables, strutils, strtabs
 
-const JSON_HEADER = "Content-Type: text/plain"
-const TEXT_HEADER = "Content-Type: application/json"
+const TEXT_HEADER* = "Content-Type: text/plain"
+const JSON_HEADER* = "Content-Type: application/json"
 
 type Wreq* = object
   req: Request
@@ -16,9 +16,8 @@ type Whip = object
 
 proc send*(my: Wreq, data: JsonNode)  = my.req.send(Http200, $data, JSON_HEADER)
 
-proc send*(my: Wreq, data: string) = my.req.send(Http200, data, TEXT_HEADER) 
-
 proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) = my.req.send(Http200, $data, headers) 
+
 
 proc `%`*(t : StringTableRef): JsonNode =
   result = newJObject()
@@ -77,8 +76,8 @@ proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDel
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
-    let uri = parseUri(req.path.get())
     let fast = my.fastReq[req.httpMethod.get()]
+    let uri = parseUri(req.path.get())
     if fast.hasKey(uri.path): fast[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
     else: 
       let route = my.router.route($req.httpMethod.get(),uri)
@@ -87,4 +86,4 @@ proc start*(my: Whip, port:int = 8080) =
   , Settings(port:Port(port)))
   echo "started"
 
-when isMainModule: import tests
+when isMainModule: import tests/whiptest
