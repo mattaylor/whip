@@ -16,8 +16,8 @@ runBench () {
 nim c -r ./whipIt.nim > /dev/null 2>&1 &
 runBench Whip 8000 $!
 
-#nim c -r ./beastIt.nim > /dev/null 2>&1 &
-#runBench HttpBeast 8080 $!
+nim c -r ./beastIt.nim > /dev/null 2>&1 &
+runBench HttpBeast 8080 $!
 
 nim c -r ./jestIt.nim > /dev/null 2>&1 &
 runBench Jester 5000 $!
