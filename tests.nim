@@ -2,7 +2,7 @@ import whip, sugar, json, strformat,  strutils, httpclient, asyncdispatch, httpc
 
 const TEXT_DATA = "hello world"
 
-proc testServe() {.thread.} =
+proc server() {.thread.} =
   let w = initWhip()
   w.onPost "/test/{name}", (r:Wreq) => r.send(%r)
   w.onGet "/test", (r:Wreq) => r.send(%r)
@@ -13,9 +13,10 @@ proc testServe() {.thread.} =
   w.start(8000)
 
 var t: Thread[void]
-createThread(t, testServe)
+t.createThread(server)
 
 let c = newAsyncHttpClient()
+
 proc runTests() {.async.} = 
   const HOST = "http://localhost:8000"
   suite "GET /text":
@@ -30,6 +31,7 @@ proc runTests() {.async.} =
 
   suite "GET /json/{name}":
     let r = await c.get(HOST & "/json/whip")
+    #let b = parseJson(await r.body)
     let b = parseJson(await r.body)
     test "status": check(r.status == Http200)
     test "name": check(b["hello"].getStr() == "whip")
