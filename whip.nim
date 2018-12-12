@@ -75,7 +75,7 @@ proc onPost*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPost]
 
 proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDelete])
 
-proc start*(my: Whip, port:int = 8080) = 
+proc start*(my: Whip, port:int = 8080) {.inline.} = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
     let sim = my.simple[req.httpMethod.get()]
