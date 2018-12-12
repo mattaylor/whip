@@ -1,4 +1,4 @@
-import asyncdispatch, URI, options, json, httpbeast, nest, elvis, httpcore, tables, strutils, strtabs
+import URI, options, json, asyncdispatch, httpbeast, nest, elvis, httpcore, tables, strutils, strtabs
 
 const JSON_HEADER = "Content-Type: text/plain"
 const TEXT_HEADER = "Content-Type: application/json"
@@ -39,7 +39,8 @@ func path*(my: Wreq, key:string): string = my.param[key]
 
 func query*(my: Wreq, key:string): string = my.query[key]
 
-proc body*(my: Wreq): JsonNode = parseJson(my.req.body.get()) ?: JsonNode() 
+proc body*(my: Wreq): JsonNode = 
+  if my.req.body.get == "": JsonNode() else: parseJson(my.req.body.get()) 
 
 proc `%`*(my:Wreq): JsonNode = %*{
   "path": my.req.path.get(),
@@ -62,9 +63,9 @@ func initWhip*(): Whip =
   w
 
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
-  for m in meths:
-    if path.contains('{'): my.router.map(handle, toLower($m), path)
-    else: my.fastReq[m][path] = handle
+  for meth in meths:
+    if path.contains('{'): my.router.map(handle, toLower($meth), path)
+    else: my.fastReq[meth][path] = handle
   
 proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
 
@@ -86,5 +87,6 @@ proc start*(my: Whip, port:int = 8080) =
       if route.status != routingSuccess: req.error()
       else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
   , Settings(port:Port(port)))
+  echo "started"
 
 when isMainModule: import tests

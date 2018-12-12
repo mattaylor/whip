@@ -10,5 +10,6 @@ w.onGet "/text", (r:Wreq) => r.send(TEXT_DATA)
 w.onGet "/json", (r:Wreq) => r.send(JSON_DATA)
 w.onGet "/json/{name}", (r:Wreq) => r.send(%*{ "hello": r.path("name")})
 w.onGet "/text/{name}", (r:Wreq) => r.send("hello " & r.path("name"))
+w.onGet "/test/{name}", (r:Wreq) => r.send(%r)
 
 w.start(8000)
