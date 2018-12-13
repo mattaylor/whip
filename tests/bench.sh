@@ -1,31 +1,31 @@
 #! /bin/bash
 
+apps=(whipit, beastit jestit)
 runBench () {
-  sleep 5
+  ./$1 > /dev/null 2>&1 &
+  pid=$!
   echo -e "\nBenchmarking $1\n"
-  for path in text json/$1 
-  do
-    wrk --timeout 20s http://localhost:$2/$path
+  sleep 5
+  for path in text json/$1; do
+    wrk --timeout 5s http://localhost:8080/$path
     #wrk --timeout 30s -s pipeline.lua http://localhost:$2/$path -- 40
     echo 
   done
-  kill -9 $3
+  kill -9 $pid
   echo "------------------------------------------"
 }
 
-nim c whipIt.nim > /dev/null 2>&1
-nim c beastIt.nim > /dev/null 2>&1
-nim c jestIt.nim > /dev/null 2>&1
-go build gingonit.go 
+if [ "$1" == "-c" ]; then
+  for app in ${apps[@]}; do
+    echo "Compiling $app" 
+    nim c $app > /dev/null 2>&1
+  done
+  nim c --threads:on mofuit > /dev/null 2>&1
+  go build gingonit.go 
+fi
 
-./whipIt > /dev/null 2>&1 &
-runBench Whip 8000 $!
-
-./beastIt > /dev/null 2>&1 &
-runBench Beast 8080 $!
-
-./jestIt > /dev/null 2>&1 &
-runBench Jester 5000 $!
-
-./gingonIt > /dev/null &
-runBench Gingonic 8080 $!
+for app in ${apps[@]}; do
+  runBench $app
+done
+runBench mofuit
+runBench gingonit

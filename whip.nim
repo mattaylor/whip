@@ -53,8 +53,8 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
 )
 
 func parseQuery*(query: string): StringTableRef {.inline.} = 
-  if query.len > 0: newStringTable(query.split({'&','='}), modeCaseSensitive)
-  else: newStringTable()
+  newStringTable(query.split({'&','='}), modeCaseSensitive)
+  #else: newStringTable()
 
 func initWhip*(): Whip {.inline.} = 
   let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, TableRef[string, Handler]]())
@@ -80,8 +80,10 @@ proc start*(my: Whip, port:int = 8080) =
   run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
     let sim = my.simple[req.httpMethod.get()]
     let uri = parseUri(req.path.get())
-    if sim.hasKey(uri.path): sim[uri.path](Wreq(req:req, query:parseQuery(uri.query))
-    else: 
+    if sim.hasKey(uri.path): 
+      if uri.query == "": sim[uri.path](Wreq(req:req))
+      else: sim[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
+    else:
       let route = my.router.route($req.httpMethod.get(),uri)
       if route.status != routingSuccess: req.error()
       else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
