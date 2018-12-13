@@ -1,6 +1,6 @@
 # WHIP
 
-WHIP is a high performance web application server based on the excellent https://github.com/dom96/httpbeast with routing provided by https://github.com/kedean/nest with some additonal optimizations. 
+WHIP is a high performance web application server based on the excellent https://github.com/dom96/httpbeast and routing provided by https://github.com/kedean/nest with some additonal optimizations. 
 
 WHIP is still in development and is not recomended for production use. Much is still missing or untested but for basic api use cases however, the performance numbers look pretty good so far (see below). 
 
