@@ -1,12 +1,9 @@
 nimcache/
 
-# Ignore all
-*
+# Ignore all files without extensions (unix executable files)
+**/*
+**/!*.*
+**/!*/
 
-# Unignore all with extensions
-!*.*
-
-# Unignore all dirs
-!*
 /whip
 

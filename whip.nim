@@ -1,4 +1,4 @@
-import URI, options, json, asyncdispatch, httpbeast, nest, httpcore, tables, strutils, strtabs
+import URI, options, json, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
 
 const TEXT_HEADER* = "Content-Type: text/plain"
 const JSON_HEADER* = "Content-Type: application/json"
@@ -8,7 +8,7 @@ type Wreq* = ref object
   query*: StringTableRef
   param*: StringTableRef
   
-type Handler* = proc (r: Wreq) #{.gcsafe.}
+type Handler* = proc (r: Wreq) #{.closure.}
 
 type Whip* = object 
   router: Router[Handler]
@@ -63,6 +63,8 @@ proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) =
     else: my.simple[meth][path] = handle
   
 proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
+
+#proc onGet*(my: Whip, path: string, h: (Wreq -> void)) = my.onReq(path, h, @[HttpGet])
 
 proc onPut*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPut])
 
