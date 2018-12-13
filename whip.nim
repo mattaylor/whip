@@ -18,7 +18,7 @@ proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) {.inline,gcsafe.} = my.req
 
 proc send*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.send($data, JSON_HEADER)
 
-proc `%`*(t : StringTableRef): JsonNode =
+func `%`*(t : StringTableRef): JsonNode =
   result = newJObject()
   if t == nil: return
   for i,v in t: result.add(i,%v)
@@ -83,7 +83,7 @@ proc start*(my: Whip, port:int = 8080) =
       if route.status != routingSuccess: req.error()
       else: 
         route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
-        sim[uri.path] = proc(w:Wreq) {.inline,closure.} = 
+        sim[uri.path] = func(w:Wreq) {.inline,closure.} = 
           w.param = route.arguments.pathArgs
           route.handler(w)
   , Settings(port:Port(port)))

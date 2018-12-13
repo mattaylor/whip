@@ -24,7 +24,7 @@ But not as fast as fastrouter.
 Very unscientific benchmarks...
 
 Framework     | Lang | `/text/{name}`| `/json/{name}`| `/text`      
---------------|------|---------------|---------------|--------------|--------       
+--------------|------|---------------|---------------|--------------      
 __Whip__      | Nim  | 66.2k (0.15)  | 56.4k (0.17)   | 70.0k (0.14) 
 __HttpBeast__ | Nim  | N/A           | N/A           | 68.2k (0.14) 
 __Jester__    | Nim  | 16.2k (0.59)  | 15.6k (0.63)  | 56.7k (0.17) 
