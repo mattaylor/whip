@@ -1,4 +1,4 @@
-import ../whip, sugar, json, strformat,  strutils, httpclient, asyncdispatch, httpcore, unittest
+import ../whip, sugar, json, strformat, strtabs, strutils, httpclient, asyncdispatch, httpcore, unittest
 
 const TEXT_DATA = "hello world"
 
@@ -8,8 +8,8 @@ proc server() {.thread.} =
   w.onGet "/test", (r:Wreq) => r.send(%r)
   w.onGet "/text", (r:Wreq) => r.send(TEXT_DATA, TEXT_HEADER)
   w.onGet "/json", (r:Wreq) => r.send(%*{"result": TEXT_DATA})
-  w.onGet "/text/{name}", (w:Wreq) => w.send("hello " & w.path("name"))
-  w.onGet "/json/{name}", (w:Wreq) => w.send(%*{ "hello": w.path("name")})
+  w.onGet "/text/{name}", (w:Wreq) => w.send("hello " & w.param["name"])
+  w.onGet "/json/{name}", (w:Wreq) => w.send(%*{ "hello": w.param["name"]})
   w.start(8000)
 
 var t: Thread[void]

@@ -1,4 +1,4 @@
-import ../whip, sugar, json
+import ../whip, sugar, json, strtabs
 {.checks: off, optimization: speed.}
 
 let w = initWhip()

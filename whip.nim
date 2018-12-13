@@ -25,15 +25,17 @@ proc `%`*(t : StringTableRef): JsonNode =
   if t == nil: return
   for i,v in t: result.add(i,%v)
 
-func path*(my: Wreq): string = my.req.path.get
+func parseQuery*(query: string): StringTableRef {.inline.} = 
+  newStringTable(query.split({'&','='}), modeCaseSensitive)
+  
 
 func header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
 
 func headers*(my: Wreq): TableRef[string, seq[string]] = my.req.headers.get().table
 
-func path*(my: Wreq, key:string): string = my.param[key]
+func path*(my: Wreq): string = my.req.path.get
 
-func query*(my: Wreq, key:string): string = my.query[key]
+func path*(my: Wreq, key:string): string = my.param[key]
 
 proc body*(my: Wreq): JsonNode  = 
   if my.req.body.get == "": JsonNode() else: parseJson(my.req.body.get()) 
@@ -52,9 +54,6 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   JSON_HEADER
 )
 
-func parseQuery*(query: string): StringTableRef {.inline.} = 
-  newStringTable(query.split({'&','='}), modeCaseSensitive)
-  #else: newStringTable()
 
 func initWhip*(): Whip {.inline.} = 
   let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, TableRef[string, Handler]]())
@@ -77,7 +76,7 @@ proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDel
 
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
-  run(proc (req:Request):Future[void] {.closure,gcsafe.} = 
+  run(proc (req:Request):Future[void] {.inline,closure,gcsafe.} = 
     let sim = my.simple[req.httpMethod.get()]
     let uri = parseUri(req.path.get())
     if sim.hasKey(uri.path): 

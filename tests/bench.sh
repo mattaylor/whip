@@ -1,13 +1,13 @@
 #! /bin/bash
 
-apps=(whipit, beastit jestit)
+apps=(whipit beastit) # jestit)
 runBench () {
   ./$1 > /dev/null 2>&1 &
   pid=$!
   echo -e "\nBenchmarking $1\n"
   sleep 5
   for path in text json/$1; do
-    wrk --timeout 5s http://localhost:8080/$path
+    wrk http://localhost:8080/$path
     #wrk --timeout 30s -s pipeline.lua http://localhost:$2/$path -- 40
     echo 
   done
