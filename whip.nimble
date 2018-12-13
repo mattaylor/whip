@@ -11,4 +11,4 @@ skipDirs = @["tests"]
 requires "nim >= 0.19.0", "nest", "httpbeast >= 0.2" 
 
 task test, "run tests": exec "nim c -r --threads=on ./whip.nim"
-task bench, "run bench": exec "cd tests; ./bench.sh -c"
+task bench, "run bench": exec "./bench.sh -c"

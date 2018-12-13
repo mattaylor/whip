@@ -8,17 +8,15 @@ type Wreq* = object
   query*: StringTableRef
   param*: StringTableRef
   
-type Handler = proc (r: Wreq) {.gcsafe.}
+type Handler* = proc (r: Wreq) #{.gcsafe.}
 
-type Whip = object 
+type Whip* = object 
   router: Router[Handler]
   simple: TableRef[HttpMethod, TableRef[string, Handler]]
-  docDir: string
-  binDir: string
+  
+proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) {.inline,gcsafe.} = my.req.send(Http200, $data, headers) 
 
-proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) {.inline.} = my.req.send(Http200, $data, headers) 
-
-proc send*(my: Wreq, data: JsonNode) {.inline.} =  my.send($data, JSON_HEADER)
+proc send*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.send($data, JSON_HEADER)
 
 proc `%`*(t : StringTableRef): JsonNode =
   result = newJObject()
@@ -28,7 +26,6 @@ proc `%`*(t : StringTableRef): JsonNode =
 func parseQuery*(query: string): StringTableRef {.inline.} = 
   newStringTable(query.split({'&','='}), modeCaseSensitive)
   
-
 func header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
 
 func headers*(my: Wreq): TableRef[string, seq[string]] = my.req.headers.get().table
@@ -53,7 +50,6 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
   $(%*{ "message": msg, "path": my.path.get(), "method": my.httpMethod.get()}), 
   JSON_HEADER
 )
-
 
 func initWhip*(): Whip {.inline.} = 
   let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, TableRef[string, Handler]]())
