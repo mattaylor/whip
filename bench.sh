@@ -1,13 +1,13 @@
 #! /bin/bash
 
-apps="whipit beastit jestit mofuit gingonit"
+apps="whipit beastit jestit mofuit gingonit fastit"
 build=0
 runBench () {
   ./$1 > /dev/null 2>&1 &
   pid=$!
   sleep 2
   echo -e "\nBenchmarking $1\n"
-  for path in text json/$1; do
+  for path in text text/$1 json/$1; do
     wrk http://localhost:8080/$path
     #wrk --timeout 30s -s pipeline.lua http://localhost:$2/$path -- 40
     echo 
@@ -30,10 +30,11 @@ fi
 
 if [ $build == 1 ]; then
   for app in $apps; do
-    echo "Compiling $app"
+    echo "Building $app"
     case $app in
       mofuit) nim c --threads:on mofuit > /dev/null;;
       gingonit) go build gingonit.go;;
+      fastit) go build fastit.go;;
       *) nim c $app > /dev/null;;
     esac
   done
