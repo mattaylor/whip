@@ -4,20 +4,29 @@ Benchmarking whipit
 Running 10s test @ http://localhost:8080/text
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   135.40us   20.73us 607.00us   83.89%
-    Req/Sec    35.93k   772.86    37.16k    76.73%
-  722062 requests in 10.10s, 91.59MB read
-Requests/sec:  71494.76
-Transfer/sec:      9.07MB
+    Latency   138.37us   25.01us 647.00us   88.87%
+    Req/Sec    35.20k     1.16k   36.58k    80.69%
+  707289 requests in 10.10s, 89.71MB read
+Requests/sec:  70030.46
+Transfer/sec:      8.88MB
 
 Running 10s test @ http://localhost:8080/text/whipit
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   195.57us   43.66us   0.88ms   81.25%
-    Req/Sec    25.12k     1.45k   27.08k    78.71%
-  505227 requests in 10.10s, 64.08MB read
-Requests/sec:  50025.65
-Transfer/sec:      6.35MB
+    Latency   146.38us   26.14us 713.00us   86.44%
+    Req/Sec    33.26k     1.32k   35.15k    84.16%
+  668494 requests in 10.10s, 84.79MB read
+Requests/sec:  66191.69
+Transfer/sec:      8.40MB
+
+Running 10s test @ http://localhost:8080/json/whipit
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   172.38us   36.82us 801.00us   86.51%
+    Req/Sec    28.35k     1.42k   29.85k    88.61%
+  569924 requests in 10.10s, 78.81MB read
+Requests/sec:  56426.93
+Transfer/sec:      7.80MB
 
 ------------------------------------------
 
@@ -26,21 +35,31 @@ Benchmarking beastit
 Running 10s test @ http://localhost:8080/text
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   141.88us   51.98us   2.25ms   87.62%
-    Req/Sec    33.98k     3.68k   40.23k    68.81%
-  682809 requests in 10.10s, 86.61MB read
-Requests/sec:  67604.86
-Transfer/sec:      8.57MB
+    Latency   151.59us   62.24us   1.25ms   85.38%
+    Req/Sec    31.80k     6.75k   42.92k    63.50%
+  632623 requests in 10.00s, 80.24MB read
+Requests/sec:  63260.75
+Transfer/sec:      8.02MB
 
 Running 10s test @ http://localhost:8080/text/beastit
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   132.13us   37.94us   1.57ms   89.53%
-    Req/Sec    36.50k     3.01k   40.06k    79.70%
-  733673 requests in 10.10s, 80.46MB read
-  Non-2xx or 3xx responses: 733673
-Requests/sec:  72638.00
-Transfer/sec:      7.97MB
+    Latency   145.12us   52.52us   0.95ms   84.50%
+    Req/Sec    33.00k     5.33k   44.17k    69.15%
+  660102 requests in 10.10s, 72.40MB read
+  Non-2xx or 3xx responses: 660102
+Requests/sec:  65360.79
+Transfer/sec:      7.17MB
+
+Running 10s test @ http://localhost:8080/json/beastit
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   145.94us   55.23us   0.90ms   85.90%
+    Req/Sec    32.99k     6.18k   41.06k    73.27%
+  662777 requests in 10.10s, 72.69MB read
+  Non-2xx or 3xx responses: 662777
+Requests/sec:  65619.95
+Transfer/sec:      7.20MB
 
 ------------------------------------------
 
@@ -49,20 +68,29 @@ Benchmarking jestit
 Running 10s test @ http://localhost:8080/text
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   174.95us   49.29us   1.85ms   88.47%
-    Req/Sec    27.92k     2.21k   31.00k    67.82%
-  561198 requests in 10.10s, 71.18MB read
-Requests/sec:  55563.84
-Transfer/sec:      7.05MB
+    Latency   167.11us   41.09us   1.15ms   91.28%
+    Req/Sec    29.29k     2.96k   31.25k    91.09%
+  588620 requests in 10.10s, 74.66MB read
+Requests/sec:  58281.57
+Transfer/sec:      7.39MB
 
 Running 10s test @ http://localhost:8080/text/jestit
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   595.53us   49.73us   1.86ms   93.83%
-    Req/Sec     8.13k   250.50     8.77k    88.61%
-  163424 requests in 10.10s, 20.73MB read
-Requests/sec:  16180.29
-Transfer/sec:      2.05MB
+    Latency   656.34us  165.29us   2.79ms   87.70%
+    Req/Sec     7.40k     1.23k    8.63k    78.22%
+  148769 requests in 10.10s, 18.87MB read
+Requests/sec:  14729.23
+Transfer/sec:      1.87MB
+
+Running 10s test @ http://localhost:8080/json/jestit
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   721.16us  210.34us   3.10ms   86.13%
+    Req/Sec     6.90k     1.25k   13.11k    76.12%
+  138060 requests in 10.10s, 19.09MB read
+Requests/sec:  13668.28
+Transfer/sec:      1.89MB
 
 ------------------------------------------
 
@@ -71,20 +99,29 @@ Benchmarking mofuit
 Running 10s test @ http://localhost:8080/text
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     1.14ms  352.26us   5.63ms   92.98%
-    Req/Sec     4.40k   374.86     6.04k    79.10%
-  87994 requests in 10.10s, 10.83MB read
-Requests/sec:   8712.51
-Transfer/sec:      1.07MB
+    Latency     1.15ms  361.44us   6.46ms   93.49%
+    Req/Sec     4.35k   331.57     4.85k    72.28%
+  87409 requests in 10.10s, 10.75MB read
+Requests/sec:   8653.51
+Transfer/sec:      1.06MB
 
 Running 10s test @ http://localhost:8080/text/mofuit
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     1.23ms  412.16us   5.94ms   92.30%
-    Req/Sec     4.09k   429.53     4.75k    80.20%
-  82111 requests in 10.10s, 10.02MB read
-Requests/sec:   8130.12
-Transfer/sec:      0.99MB
+    Latency     1.22ms  436.66us   6.12ms   91.79%
+    Req/Sec     4.13k   466.43     4.99k    82.59%
+  82537 requests in 10.10s, 10.08MB read
+Requests/sec:   8171.13
+Transfer/sec:      1.00MB
+
+Running 10s test @ http://localhost:8080/json/mofuit
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.28ms  475.42us   7.64ms   91.24%
+    Req/Sec     3.96k   536.59     7.83k    89.05%
+  79133 requests in 10.10s, 10.64MB read
+Requests/sec:   7835.32
+Transfer/sec:      1.05MB
 
 ------------------------------------------
 
@@ -93,20 +130,29 @@ Benchmarking gingonit
 Running 10s test @ http://localhost:8080/text
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   144.63us   54.14us   2.85ms   83.84%
-    Req/Sec    29.37k     2.14k   40.29k    75.25%
-  590286 requests in 10.10s, 72.06MB read
-Requests/sec:  58442.75
-Transfer/sec:      7.13MB
+    Latency   148.48us   55.75us   2.13ms   82.42%
+    Req/Sec    28.65k     2.39k   34.43k    75.25%
+  575922 requests in 10.10s, 70.30MB read
+Requests/sec:  57023.95
+Transfer/sec:      6.96MB
 
 Running 10s test @ http://localhost:8080/text/gingonit
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   147.24us   49.55us   1.36ms   79.56%
-    Req/Sec    29.00k     2.64k   38.94k    75.25%
-  582877 requests in 10.10s, 72.82MB read
-Requests/sec:  57710.90
-Transfer/sec:      7.21MB
+    Latency   152.27us   59.64us   3.15ms   84.91%
+    Req/Sec    28.15k     2.98k   39.71k    76.24%
+  565705 requests in 10.10s, 70.67MB read
+Requests/sec:  56009.87
+Transfer/sec:      7.00MB
+
+Running 10s test @ http://localhost:8080/json/gingonit
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   162.43us  169.16us   8.46ms   98.05%
+    Req/Sec    27.33k     2.18k   36.18k    73.27%
+  549103 requests in 10.10s, 74.88MB read
+Requests/sec:  54369.43
+Transfer/sec:      7.41MB
 
 ------------------------------------------
 
@@ -115,19 +161,29 @@ Benchmarking fastit
 Running 10s test @ http://localhost:8080/text
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    91.20us   28.21us 649.00us   73.38%
-    Req/Sec    45.38k     2.84k   49.90k    70.30%
-  911614 requests in 10.10s, 128.67MB read
-Requests/sec:  90261.98
-Transfer/sec:     12.74MB
+    Latency    98.90us   39.62us   1.54ms   83.40%
+    Req/Sec    42.21k     5.95k   50.15k    78.71%
+  848041 requests in 10.10s, 119.70MB read
+Requests/sec:  83968.39
+Transfer/sec:     11.85MB
 
 Running 10s test @ http://localhost:8080/text/fastit
   2 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    92.10us   26.96us 509.00us   71.49%
-    Req/Sec    44.97k     2.53k   49.79k    66.34%
-  903546 requests in 10.10s, 129.25MB read
-Requests/sec:  89462.08
-Transfer/sec:     12.80MB
+    Latency   100.84us   38.85us   1.42ms   77.44%
+    Req/Sec    40.19k     4.93k   52.10k    77.72%
+  807393 requests in 10.10s, 115.50MB read
+Requests/sec:  79942.24
+Transfer/sec:     11.44MB
+
+Running 10s test @ http://localhost:8080/json/fastit
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    94.11us   28.70us 770.00us   72.93%
+    Req/Sec    43.80k     2.93k   49.65k    67.33%
+  880468 requests in 10.10s, 125.95MB read
+  Non-2xx or 3xx responses: 880468
+Requests/sec:  87174.88
+Transfer/sec:     12.47MB
 
 ------------------------------------------

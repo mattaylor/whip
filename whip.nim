@@ -3,7 +3,7 @@ import URI, options, json, asyncdispatch, httpbeast, nest, httpcore, tables, str
 const TEXT_HEADER* = "Content-Type: text/plain"
 const JSON_HEADER* = "Content-Type: application/json"
 
-type Wreq* = object
+type Wreq* = ref object
   req: Request
   query*: StringTableRef
   param*: StringTableRef
@@ -81,7 +81,11 @@ proc start*(my: Whip, port:int = 8080) =
     else:
       let route = my.router.route($req.httpMethod.get(),uri)
       if route.status != routingSuccess: req.error()
-      else: route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
+      else: 
+        route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
+        sim[uri.path] = proc(w:Wreq) {.inline,closure.} = 
+          w.param = route.arguments.pathArgs
+          route.handler(w)
   , Settings(port:Port(port)))
   echo "started"
 
