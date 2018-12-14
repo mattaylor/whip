@@ -1,12 +1,14 @@
-import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
+import URI, options, critbits, sugar, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
+{.experimental.}
 
 const TEXT_TYPE* = "Content-Type: text/plain"
 const JSON_TYPE* = "Content-Type: application/json"
 
 type Wreq* = ref object
   req*: Request
-  query*: StringTableRef
-  param*: StringTableRef
+  uri*: URI
+  qargs: StringTableRef
+  pargs: StringTableRef
   
 type Handler* = proc (r: Wreq) {.inline,closure.}
 
@@ -26,10 +28,11 @@ func `%`*(t : StringTableRef): JsonNode =
   var o = newJObject()
   if t == nil: return
   for i,v in t: o[i] = newJString(v)
-  o  
+  return o  
 
-func parseQuery*(query: string): StringTableRef {.inline.} = 
-  newStringTable(query.split({'&','='}), modeCaseSensitive)
+proc query*(my: Wreq): StringTableRef = 
+  if my.qargs.isNil: my.qargs = newStringTable(my.uri.query.split({'&','='}), modeCaseSensitive)
+  return my.qargs
   
 func header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
 
@@ -37,7 +40,7 @@ func headers*(my: Wreq): TableRef[string, seq[string]] = my.req.headers.get().ta
 
 func path*(my: Wreq): string = my.req.path.get
 
-func path*(my: Wreq, key:string): string = my.param[key]
+func path*(my: Wreq, key:string): string = my.pargs[key]
 
 proc body*(my: Wreq): JsonNode  = 
   if my.req.body.get == "": JsonNode() else: parseJson(my.req.body.get()) 
@@ -46,8 +49,8 @@ proc `%`*(my:Wreq): JsonNode = %{
   "path": %my.req.path.get(),
   "body": %my.body(),
   "method": %my.req.httpMethod.get(),
-  "query": %my.query,
-  "param": %my.param
+  "query": %my.query(),
+  "param": %my.pargs
 }
 
 proc error(my:Request, msg:string = "Not Found") = my.send(
@@ -60,7 +63,7 @@ func initWhip*(): Whip {.inline.} =
   let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, CritBitTree[Handler]]())
   for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
     w.simple[m] =  CritBitTree[Handler]()
-  w
+  return w
 
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
   for meth in meths:
@@ -77,19 +80,19 @@ proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDel
 
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
-  run(proc (req:Request):Future[void] {.inline,closure,gcsafe.} = 
-    var sim = my.simple[req.httpMethod.get()]
-    let uri = parseUri(req.path.get())
-    if sim.hasKey(uri.path): 
-      if uri.query == "": sim[uri.path](Wreq(req:req))
-      else: sim[uri.path](Wreq(req:req, query:parseQuery(uri.query)))
+  run(proc (beast:Request):Future[void] {.inline,closure,gcsafe.} = 
+    var sim = my.simple[beast.httpMethod.get()]
+    var req = Wreq(req:beast, uri:parseUri(beast.path.get()))
+    if sim.hasKey(req.uri.path): sim[req.uri.path](req)
     else:
-      let route = my.router.route($req.httpMethod.get(),uri)
-      if route.status != routingSuccess: req.error()
+      let route = my.router.route($beast.httpMethod.get(),req.uri)
+      if route.status != routingSuccess: beast.error()
       else: 
-        route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
-        sim[uri.path] = func(r:Wreq) {.inline,closure.} = 
-          r.param = route.arguments.pathArgs
+        req.qargs = route.arguments.queryArgs
+        req.pargs = route.arguments.pathArgs
+        route.handler(req)
+        sim[req.uri.path] = func(r:Wreq) {.inline,closure.} = 
+          r.pargs = route.arguments.pathArgs
           route.handler(r)
    , Settings(port:Port(port)))
   echo "started"
