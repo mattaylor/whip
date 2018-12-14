@@ -1,7 +1,7 @@
-import URI, options, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
+import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
 
-const TEXT* = "Content-Type: text/plain"
-const JSON* = "Content-Type: application/json"
+const TEXT_TYPE* = "Content-Type: text/plain"
+const JSON_TYPE* = "Content-Type: application/json"
 
 type Wreq* = ref object
   req*: Request
@@ -12,16 +12,15 @@ type Handler* = proc (r: Wreq) {.inline,closure.}
 
 type Whip* = object 
   router: Router[Handler]
-  simple: TableRef[HttpMethod, TableRef[string, Handler]]
-  
+  simple: TableRef[HttpMethod, CritBitTree[Handler]]
 
-proc send*[T](my: Wreq, data: T, head=TEXT) {.inline,gcsafe.} = my.req.send(Http200, $data, head) 
+proc send*[T](my: Wreq, data: T, head=TEXT_TYPE) {.inline,gcsafe.} = my.req.send(Http200, $data, head) 
 
-proc json*(my: Wreq, data: string) {.inline,gcsafe.} =  my.req.send(Http200, data, JSON)
+proc json*(my: Wreq, data: string) {.inline,gcsafe.} =  my.req.send(Http200, data, JSON_TYPE)
 
-proc json*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.req.send(Http200, $data, JSON)
+proc json*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.req.send(Http200, $data, JSON_TYPE)
 
-proc json*[T](my: Wreq, data: T) {.inline,gcsafe.} =  my.req.send(Http200, $(%data), JSON)
+proc json*[T](my: Wreq, data: T) {.inline,gcsafe.} =  my.req.send(Http200, $(%data), JSON_TYPE)
 
 func `%`*(t : StringTableRef): JsonNode =
   var o = newJObject()
@@ -54,13 +53,13 @@ proc `%`*(my:Wreq): JsonNode = %{
 proc error(my:Request, msg:string = "Not Found") = my.send(
   Http400, 
   $(%*{ "message": msg, "path": my.path.get(), "method": my.httpMethod.get()}), 
-  JSON
+  JSON_TYPE
 )
 
 func initWhip*(): Whip {.inline.} = 
-  let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, TableRef[string, Handler]]())
+  let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, CritBitTree[Handler]]())
   for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
-    w.simple[m] = newTable[string, Handler]()
+    w.simple[m] =  CritBitTree[Handler]()
   w
 
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
@@ -79,7 +78,7 @@ proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDel
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
   run(proc (req:Request):Future[void] {.inline,closure,gcsafe.} = 
-    let sim = my.simple[req.httpMethod.get()]
+    var sim = my.simple[req.httpMethod.get()]
     let uri = parseUri(req.path.get())
     if sim.hasKey(uri.path): 
       if uri.query == "": sim[uri.path](Wreq(req:req))
@@ -89,9 +88,9 @@ proc start*(my: Whip, port:int = 8080) =
       if route.status != routingSuccess: req.error()
       else: 
         route.handler(Wreq(req:req, query:route.arguments.queryArgs, param:route.arguments.pathArgs))
-        sim[uri.path] = func(w:Wreq) {.inline,closure.} = 
-          w.param = route.arguments.pathArgs
-          route.handler(w)
+        sim[uri.path] = func(r:Wreq) {.inline,closure.} = 
+          r.param = route.arguments.pathArgs
+          route.handler(r)
    , Settings(port:Port(port)))
   echo "started"
 
