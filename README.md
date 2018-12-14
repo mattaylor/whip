@@ -17,7 +17,7 @@ w.start()
 
 ## Its Fast. 
 
-As fast as Httpbeast for simple routes and 2-3x faster than Jester for complex routing.
+As fast as Httpbeast for simple routes and upto 3x faster than Jester for complex routing.
 
 Compared to Go, it is a little quicker than Gin-gonic but slower than fastrouter. 
 
