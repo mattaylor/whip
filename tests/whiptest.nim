@@ -1,4 +1,4 @@
-import ../whip, sugar, json, strformat, strtabs, strutils, httpclient, asyncdispatch, httpcore, unittest
+import ../whip, sugar, packedJson, strformat, strtabs, strutils, httpclient, asyncdispatch, httpcore, unittest
 
 const TEXT_DATA = "hello world"
 

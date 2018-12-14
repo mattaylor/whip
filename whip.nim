@@ -1,27 +1,33 @@
-import URI, options, json, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
+import URI, options, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
 
-const TEXT_HEADER* = "Content-Type: text/plain"
-const JSON_HEADER* = "Content-Type: application/json"
+const TEXT* = "Content-Type: text/plain"
+const JSON* = "Content-Type: application/json"
 
 type Wreq* = ref object
-  req: Request
+  req*: Request
   query*: StringTableRef
   param*: StringTableRef
   
-type Handler* = proc (r: Wreq) #{.closure.}
+type Handler* = proc (r: Wreq) {.inline,closure.}
 
 type Whip* = object 
   router: Router[Handler]
   simple: TableRef[HttpMethod, TableRef[string, Handler]]
   
-proc send*[T](my: Wreq, data: T, headers=TEXT_HEADER) {.inline,gcsafe.} = my.req.send(Http200, $data, headers) 
 
-proc send*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.send($data, JSON_HEADER)
+proc send*[T](my: Wreq, data: T, head=TEXT) {.inline,gcsafe.} = my.req.send(Http200, $data, head) 
+
+proc json*(my: Wreq, data: string) {.inline,gcsafe.} =  my.req.send(Http200, data, JSON)
+
+proc json*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.req.send(Http200, $data, JSON)
+
+proc json*[T](my: Wreq, data: T) {.inline,gcsafe.} =  my.req.send(Http200, $(%data), JSON)
 
 func `%`*(t : StringTableRef): JsonNode =
-  result = newJObject()
+  var o = newJObject()
   if t == nil: return
-  for i,v in t: result.add(i,%v)
+  for i,v in t: o[i] = newJString(v)
+  o  
 
 func parseQuery*(query: string): StringTableRef {.inline.} = 
   newStringTable(query.split({'&','='}), modeCaseSensitive)
@@ -37,18 +43,18 @@ func path*(my: Wreq, key:string): string = my.param[key]
 proc body*(my: Wreq): JsonNode  = 
   if my.req.body.get == "": JsonNode() else: parseJson(my.req.body.get()) 
 
-proc `%`*(my:Wreq): JsonNode = %*{
-  "path": my.req.path.get(),
-  "body": my.body(),
-  "method": my.req.httpMethod.get(),
-  "query": my.query,
-  "param": my.param
+proc `%`*(my:Wreq): JsonNode = %{
+  "path": %my.req.path.get(),
+  "body": %my.body(),
+  "method": %my.req.httpMethod.get(),
+  "query": %my.query,
+  "param": %my.param
 }
 
 proc error(my:Request, msg:string = "Not Found") = my.send(
   Http400, 
   $(%*{ "message": msg, "path": my.path.get(), "method": my.httpMethod.get()}), 
-  JSON_HEADER
+  JSON
 )
 
 func initWhip*(): Whip {.inline.} = 
@@ -63,8 +69,6 @@ proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) =
     else: my.simple[meth][path] = handle
   
 proc onGet*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpGet])
-
-#proc onGet*(my: Whip, path: string, h: (Wreq -> void)) = my.onReq(path, h, @[HttpGet])
 
 proc onPut*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPut])
 
@@ -88,7 +92,7 @@ proc start*(my: Whip, port:int = 8080) =
         sim[uri.path] = func(w:Wreq) {.inline,closure.} = 
           w.param = route.arguments.pathArgs
           route.handler(w)
-  , Settings(port:Port(port)))
+   , Settings(port:Port(port)))
   echo "started"
 
 when isMainModule: import tests/whiptest
