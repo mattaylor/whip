@@ -1,19 +1,18 @@
 import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
-#{.experimental.}
 
 const TEXT_TYPE* = "Content-Type: text/plain"
 const JSON_TYPE* = "Content-Type: application/json"
 
 type Wreq* = ref object
-  req*: Request
-  uri*: URI
-  args: RoutingArgs
-  
+    req*: Request
+    uri*: URI
+    args: RoutingArgs
+    
 type Handler* = func (r: Wreq) {.inline,closure.}
 
 type Whip* = object 
-  router: Router[Handler]
-  simple: TableRef[HttpMethod, CritBitTree[Handler]]
+    router: Router[Handler]
+    simple: TableRef[HttpMethod, CritBitTree[Handler]]
 
 proc send*[T](my: Wreq, data: T, head=TEXT_TYPE) {.inline,gcsafe.} = my.req.send(Http200, $data, head) 
 
@@ -32,7 +31,7 @@ func `%`*(t : StringTableRef): JsonNode =
 func query*(my: Wreq): StringTableRef {.inline.} = 
   if my.args.queryArgs.isNil: 
     my.args.queryArgs = newStringTable(my.uri.query.split({'&','='}), modeCaseSensitive)
-  return my.args.queryArgs
+  my.args.queryArgs
   
 func header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
 
@@ -90,17 +89,15 @@ proc start*(my: Whip, port:int = 8080) =
   run(proc (beast:Request):Future[void]  = 
     var sim = my.simple[beast.httpMethod.get()]
     var req = initWreq(beast)
-    if sim.hasKey(req.uri.path): sim[req.uri.path](req)
-    else:
-      let route = my.router.route($beast.httpMethod.get(),req.uri)
-      if route.status != routingSuccess: beast.error()
-      else: 
-        req.args =  route.arguments
-        route.handler(req)
-        sim[req.uri.path] = func(r:Wreq) {.inline,closure.} = 
-          r.args.pathArgs = route.arguments.pathArgs
-          route.handler(r)
-   , Settings(port:Port(port)))
+    if sim.hasKey(req.uri.path): sim[req.uri.path](req); return
+    let route = my.router.route($beast.httpMethod.get(),req.uri)
+    if route.status != routingSuccess: beast.error(); return
+    req.args =  route.arguments
+    route.handler(req)
+    sim[req.uri.path] = func(r:Wreq) {.inline,closure.} = 
+      r.args.pathArgs = route.arguments.pathArgs
+      route.handler(r)
+  , Settings(port:Port(port)))
   echo "started"
 
 when isMainModule: import tests/whiptest
