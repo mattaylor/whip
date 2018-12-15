@@ -1,4 +1,4 @@
-import URI, options, critbits, sugar, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
+import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest, tables, httpcore, strutils, strtabs
 {.experimental.}
 
 const TEXT_TYPE* = "Content-Type: text/plain"
@@ -10,7 +10,7 @@ type Wreq* = ref object
   qargs: StringTableRef
   pargs: StringTableRef
   
-type Handler* = proc (r: Wreq) {.inline,closure.}
+type Handler* = func (r: Wreq) {.inline,closure.}
 
 type Whip* = object 
   router: Router[Handler]
@@ -30,7 +30,7 @@ func `%`*(t : StringTableRef): JsonNode =
   for i,v in t: o[i] = newJString(v)
   return o  
 
-proc query*(my: Wreq): StringTableRef = 
+func query*(my: Wreq): StringTableRef {.inline.} = 
   if my.qargs.isNil: my.qargs = newStringTable(my.uri.query.split({'&','='}), modeCaseSensitive)
   return my.qargs
   
@@ -61,8 +61,7 @@ proc error(my:Request, msg:string = "Not Found") = my.send(
 
 func initWhip*(): Whip {.inline.} = 
   let w = Whip(router: newRouter[Handler](), simple: newTable[HttpMethod, CritBitTree[Handler]]())
-  for m in @[HttpGet, HttpPut, HttpPost, HttpPatch, HttpDelete]: 
-    w.simple[m] =  CritBitTree[Handler]()
+  for m in HttpMethod: w.simple[m] = CritBitTree[Handler]()
   return w
 
 proc onReq*(my: Whip, path: string, handle: Handler, meths:seq[HttpMethod]) = 
@@ -78,11 +77,20 @@ proc onPost*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpPost]
 
 proc onDelete*(my: Whip, path: string, h: Handler) = my.onReq(path, h, @[HttpDelete])
 
+proc initWreq(req:Request): Wreq {.inline.} =
+  var w = Wreq(req:req)
+  var b = true
+  for v in req.path.get().split('?'):
+    if b: w.uri.path = v else: w.uri.query = v
+    b = false
+  return w
+
 proc start*(my: Whip, port:int = 8080) = 
   my.router.compress()
-  run(proc (beast:Request):Future[void] {.inline,closure,gcsafe.} = 
+  run(proc (beast:Request):Future[void]  = 
     var sim = my.simple[beast.httpMethod.get()]
-    var req = Wreq(req:beast, uri:parseUri(beast.path.get()))
+    var req = initWreq(beast)
+    #var req = Wreq(req:beast, uri:parseUri(beast.path.get))
     if sim.hasKey(req.uri.path): sim[req.uri.path](req)
     else:
       let route = my.router.route($beast.httpMethod.get(),req.uri)

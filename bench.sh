@@ -7,7 +7,8 @@ runBench () {
   pid=$!
   sleep 2
   echo -e "\nBenchmarking $1\n"
-  for path in text text/$1 json json/$1; do
+  for path in text # text/$1 json json/$1
+  do
     wrk http://localhost:8080/$path
     #wrk --timeout 30s -s pipeline.lua http://localhost:$2/$path -- 40
     echo 
