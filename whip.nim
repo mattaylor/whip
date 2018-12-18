@@ -2,25 +2,30 @@ import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest, table
 
 const TEXT_TYPE* = "Content-Type: text/plain"
 const JSON_TYPE* = "Content-Type: application/json"
+const HTML_TYPE* = "Content-Type: text/html"
 
 type Wreq* = ref object
-    req*: Request
-    uri*: URI
-    args: RoutingArgs
-    
+  req*: Request
+  uri*: URI
+  args: RoutingArgs
+
 type Handler* = func (r: Wreq) {.inline,closure.}
 
 type Whip* = object 
-    router: Router[Handler]
-    simple: TableRef[HttpMethod, CritBitTree[Handler]]
+  router: Router[Handler]
+  simple: TableRef[HttpMethod, CritBitTree[Handler]]
 
-proc send*[T](my: Wreq, data: T, head=TEXT_TYPE) {.inline,gcsafe.} = my.req.send(Http200, $data, head) 
+proc send*[T](my: Wreq, body: T, head=TEXT_TYPE) {.inline,gcsafe.} = my.req.send(Http200, $body, head) 
 
-proc json*(my: Wreq, data: string) {.inline,gcsafe.} =  my.req.send(Http200, data, JSON_TYPE)
+proc json*(my: Wreq, body: string) {.inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
 
-proc json*(my: Wreq, data: JsonNode) {.inline,gcsafe.} =  my.req.send(Http200, $data, JSON_TYPE)
+proc html*(my: Wreq, body: string) {.inline,gcsafe.} =  my.req.send(Http200, body, HTML_TYPE)
 
-proc json*[T](my: Wreq, data: T) {.inline,gcsafe.} =  my.req.send(Http200, $(%data), JSON_TYPE)
+#proc html*(my: Wreq, body: StringStream) {.inline,gcsafe.} =  my.req.send(Http200, body.data, HTML_TYPE)
+
+proc json*(my: Wreq, body: JsonNode) {.inline,gcsafe.} =  my.req.send(Http200, $body, JSON_TYPE)
+
+proc json*[T](my: Wreq, body: T) {.inline,gcsafe.} =  my.req.send(Http200, $(%body), JSON_TYPE)
 
 func `%`*(t : StringTableRef): JsonNode =
   var o = newJObject()
@@ -32,7 +37,12 @@ func query*(my: Wreq): StringTableRef {.inline.} =
   if my.args.queryArgs.isNil: 
     my.args.queryArgs = newStringTable(my.uri.query.split({'&','='}), modeCaseSensitive)
   my.args.queryArgs
-  
+
+func query*(my: Wreq, key:string): string {.inline.} = 
+  if my.args.queryArgs.isNil: 
+    my.args.queryArgs = newStringTable(my.uri.query.split({'&','='}), modeCaseSensitive)
+  if my.args.queryArgs.hasKey(key): my.args.queryArgs[key] else: ""
+
 func header*(my: Wreq, key:string): seq[string] = my.req.headers.get().table[key]
 
 func headers*(my: Wreq): TableRef[string, seq[string]] = my.req.headers.get().table
