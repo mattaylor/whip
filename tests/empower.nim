@@ -48,7 +48,7 @@ proc fortunes(): string=
   fortemp(rows)
   
 proc worldRaw(q:string):string  = 
-  if q == "" : return "[]"
+  if not(q.isDigit()): return "[]"
   let len = parseInt(q)
   var sql = ""
   for i in 0..len: sql &= WORLD_BY_ID & $(rand(8)+1) & ";"
