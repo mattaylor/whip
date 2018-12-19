@@ -15,7 +15,7 @@ proc init(db:DbConn)  =
   for m in model.split(';'): 
     if m.strip != "": db.exec(sql(m), [])
   var in1 = "insert into world values "
-  for i in 1..10000: in1 &= &"({i}, {rand(100000)}),"
+  for i in 0..1000: in1 &= &"({i}, {rand(100000)}),"
   db.exec sql(in1.strip(chars={','}))
   var in2 = "insert into fortune values "
   for i in 1..12: in2 &= &"({i}, 'a fortune {rand(100)}'),"
@@ -51,7 +51,7 @@ proc worldRaw(q:string):string  =
   if not(q.isDigit()): return "[]"
   let len = parseInt(q)
   var sql = ""
-  for i in 0..len: sql &= WORLD_BY_ID & $(rand(9999) & ";"
+  for i in 0..len: sql &= WORLD_BY_ID & $rand(1000) & ";"
   let res = waitFor adb.exec(sql)
   var txt = "[" & $res[0].getRow()
   for i in 1..len: txt &= "," & $res[i].getRow()
@@ -65,7 +65,7 @@ const TEXT_DATA = "Hello World!"
 w.onGet "/json", (r:Wreq) => r.json(JSON_DATA)
 w.onGet "/plaintext", (r:Wreq) => r.send(TEXT_DATA)
 w.onGet "/fortunes",  (r:Wreq) => r.html(fortunes())
-w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(9999))
+w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(1000)))
 w.onGet "/queries",(r:Wreq) => r.json(worldRaw(r.query("queries")))
 
 w.start(8080)
