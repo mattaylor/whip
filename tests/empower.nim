@@ -49,10 +49,10 @@ proc fortunes(): string=
   
 proc worldRaw(len:int):string  = 
   var sql = ""
-  var txt = "["
   for i in 0..len: sql &= WORLD_BY_ID & $(rand(8)+1) & ";"
   let res = waitFor adb.exec(sql)
-  for i in 0..len: txt &= $res[i].getRow() & ","
+  var txt = "[" & $res[0].getRow()
+  for i in 1..len: txt &= "," & $res[i].getRow()
   return txt & "]"
 
 let w = initWhip()
