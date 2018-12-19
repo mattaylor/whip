@@ -47,7 +47,9 @@ proc fortunes(): string=
   rows.sort do (x, y: seq[string]) -> int : cmp(x[1], y[1])
   fortemp(rows)
   
-proc worldRaw(len:int):string  = 
+proc worldRaw(q:string):string  = 
+  if q == "" : return "[]"
+  let len = parseInt(q)
   var sql = ""
   for i in 0..len: sql &= WORLD_BY_ID & $(rand(8)+1) & ";"
   let res = waitFor adb.exec(sql)
@@ -64,6 +66,6 @@ w.onGet "/json", (r:Wreq) => r.json(JSON_DATA)
 w.onGet "/plaintext", (r:Wreq) => r.send(TEXT_DATA)
 w.onGet "/fortunes",  (r:Wreq) => r.html(fortunes())
 w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(8)+1))
-w.onGet "/queries",(r:Wreq) => r.json(worldRaw(parseInt(r.query("queries"))))
+w.onGet "/queries",(r:Wreq) => r.json(worldRaw(r.query("queries")))
 
 w.start(8080)
