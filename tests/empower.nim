@@ -1,4 +1,4 @@
-import ../whip, sugar, templates, asyncdispatch, asyncpg, algorithm, random, db_postgres, strutils
+import ../whip, sugar, templates, strformat, asyncdispatch, asyncpg, algorithm, random, db_postgres, strutils
 {.checks: off, optimization: speed.}
 
 var sdb = open("localhost", "mtaylor", "", "empower")
@@ -9,23 +9,23 @@ waitFor adb.connect("host=localhost user=mtaylor dbname=empower")
 const FORTUNE_ALL = sql"select id, message from fortune"
 const WORLD_BY_ID = "select id, randomNumber from world where id ="
 
-#[
-proc init(db:apgConnection)  = 
-  let model = readFile("model.sql")
-  for m in model.split(';'):
+
+proc init(db:DbConn)  = 
+  let model = readFile("empower.sql")
+  for m in model.split(';'): 
     if m.strip != "": db.exec(sql(m), [])
-  db.exec(sql"truncate world")
-  let max = 9
-  var ins = "insert into world values (1, 10)"
-  for i in 2..max: ins &= &",({i}, {rand(100000)})"
-  db.exec(sql(ins))
-]#
+  var in1 = "insert into world values "
+  for i in 1..10000: in1 &= &"({i}, {rand(100000)}),"
+  db.exec sql(in1.strip(chars={','}))
+  var in2 = "insert into fortune values "
+  for i in 1..12: in2 &= &"({i}, 'a fortune {rand(100)}'),"
+  db.exec sql(in2.strip(chars={','}))
+
+sdb.init()
 
 let worldById = sdb.prepare("worldById", sql(WORLD_BY_ID & "$1"), 1)
 
 func `$`(r:seq[string]): string = "{\"id\": " & $r[0] & ",\"randomNumber\": " & $r[1] & "}"
-
-#func `$`(r:seq[Row]): string = "[" & r.join(",") & "]"
 
 proc fortemp (rows:seq[seq[string]]): string = tmpli html"""
   <html>
@@ -47,8 +47,6 @@ proc fortunes(): string=
   rows.sort do (x, y: seq[string]) -> int : cmp(x[1], y[1])
   fortemp(rows)
   
-proc worldRaw():string  = $sdb.getRow(worldById, rand(8)+1)
-
 proc worldRaw(len:int):string  = 
   var sql = ""
   var txt = "["
@@ -65,7 +63,7 @@ const TEXT_DATA = "Hello World!"
 w.onGet "/json", (r:Wreq) => r.json(JSON_DATA)
 w.onGet "/plaintext", (r:Wreq) => r.send(TEXT_DATA)
 w.onGet "/fortunes",  (r:Wreq) => r.html(fortunes())
-w.onGet "/db",  (r:Wreq) => r.json(worldRaw())
+w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(8)+1))
 w.onGet "/queries",(r:Wreq) => r.json(worldRaw(parseInt(r.query("queries"))))
 
 w.start(8080)
