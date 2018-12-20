@@ -1,7 +1,6 @@
-
 init = function(args)
-  depth = tonumber(args[1]) or 1
   local r = {}
+  local depth = tonumber(args[1]) or 1
   for i=1,depth do
     r[i] = wrk.format() 
   end
