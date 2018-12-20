@@ -9,23 +9,23 @@ type Wreq* = ref object
   uri*: URI
   args: RoutingArgs
 
-type Handler* = func (r: Wreq) {.inline,closure.}
+type Handler* = func (r: Wreq):Future[void] {.inline,closure.}
 
 type Whip* = object 
   router: Router[Handler]
   simple: TableRef[HttpMethod, CritBitTree[Handler]]
 
-proc send*[T](my: Wreq, body: T, head=TEXT_TYPE) {.inline,gcsafe.} = my.req.send(Http200, $body, head) 
+proc send*[T](my: Wreq, body: T, head=TEXT_TYPE) {.async,inline,gcsafe.} = my.req.send(Http200, $body, head) 
 
-proc json*(my: Wreq, body: string) {.inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
+proc json*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
 
-proc html*(my: Wreq, body: string) {.inline,gcsafe.} =  my.req.send(Http200, body, HTML_TYPE)
+proc html*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, HTML_TYPE)
 
 #proc html*(my: Wreq, body: StringStream) {.inline,gcsafe.} =  my.req.send(Http200, body.data, HTML_TYPE)
 
-proc json*(my: Wreq, body: JsonNode) {.inline,gcsafe.} =  my.req.send(Http200, $body, JSON_TYPE)
+proc json*(my: Wreq, body: JsonNode) {.async,inline,gcsafe.} =  my.req.send(Http200, $body, JSON_TYPE)
 
-proc json*[T](my: Wreq, body: T) {.inline,gcsafe.} =  my.req.send(Http200, $(%body), JSON_TYPE)
+proc json*[T](my: Wreq, body: T) {.async,inline,gcsafe.} =  my.req.send(Http200, $(%body), JSON_TYPE)
 
 func `%`*(t : StringTableRef): JsonNode =
   var o = newJObject()
@@ -55,14 +55,14 @@ proc body*(my: Wreq): JsonNode  =
   if my.req.body.get == "": JsonNode() else: parseJson(my.req.body.get()) 
 
 proc `%`*(my:Wreq): JsonNode = %{
-  "path": %my.req.path.get(),
-  "body": %my.body(),
+  "path": %my.req.path.get(), 
+  "body": %my.body(), 
   "method": %my.req.httpMethod.get(),
-  "query": %my.query(),
+  "query": %my.query(), 
   "param": %my.args.pathArgs
 }
 
-proc error(my:Request, msg:string = "Not Found") = my.send(
+proc error(my:Request, msg:string = "Not Found") {.async.} = my.send(
   Http400, 
   $(%*{ "message": msg, "path": my.path.get(), "method": my.httpMethod.get()}), 
   JSON_TYPE
@@ -99,14 +99,15 @@ proc start*(my: Whip, port:int = 8080) =
   run(proc (beast:Request):Future[void]  = 
     var sim = my.simple[beast.httpMethod.get()]
     var req = initWreq(beast)
-    if sim.hasKey(req.uri.path): sim[req.uri.path](req); return
+    if sim.hasKey(req.uri.path): return sim[req.uri.path](req)
     let route = my.router.route($beast.httpMethod.get(),req.uri)
-    if route.status != routingSuccess: beast.error(); return
+    if route.status != routingSuccess: return beast.error()
     req.args =  route.arguments
-    route.handler(req)
-    sim[req.uri.path] = func(r:Wreq) {.inline,closure.} = 
+    sim[req.uri.path] = func(r:Wreq):Future[void] {.inline,closure.} = 
       r.args.pathArgs = route.arguments.pathArgs
       route.handler(r)
+    return route.handler(req)
+    
   , Settings(port:Port(port)))
   echo "started"
 

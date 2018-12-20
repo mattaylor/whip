@@ -1,4 +1,4 @@
-import ../whip, sugar, asyncdispatch, packedjson, strtabs
+import ../whip, sugar, packedjson, strtabs
 {.checks: off, optimization: speed.}
 
 let w = initWhip()

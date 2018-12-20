@@ -6,8 +6,9 @@ var adb = newPool()
 
 waitFor adb.connect("host=localhost user=mtaylor dbname=empower")
 
-const FORTUNE_ALL = sql"select id, message from fortune"
-const WORLD_BY_ID = "select id, randomNumber from world where id ="
+const GET_FORTUNE_ALL = sql"select id, message from fortune"
+const GET_WORLD_BY_ID = "select id, randomNumber from world where id ="
+#const SET_WORLD_BY_ID = "update world id, randomNumber from world where id ="
 
 
 proc init(db:DbConn)  = 
@@ -18,12 +19,12 @@ proc init(db:DbConn)  =
   for i in 0..1000: in1 &= &"({i}, {rand(100000)}),"
   db.exec sql(in1.strip(chars={','}))
   var in2 = "insert into fortune values "
-  for i in 1..12: in2 &= &"({i}, 'a fortune {rand(100)}'),"
+  for i in 1..12: in2 &= &"({i}, 'A fortune {rand(100)}'),"
   db.exec sql(in2.strip(chars={','}))
 
 sdb.init()
 
-let worldById = sdb.prepare("worldById", sql(WORLD_BY_ID & "$1"), 1)
+let worldById = sdb.prepare("worldById", sql(GET_WORLD_BY_ID & "$1"), 1)
 
 func `$`(r:seq[string]): string = "{\"id\": " & $r[0] & ",\"randomNumber\": " & $r[1] & "}"
 
@@ -43,29 +44,55 @@ proc fortemp (rows:seq[seq[string]]): string = tmpli html"""
   
 proc fortunes(): string= 
   var rows = @[@["0", "Additional fortune added at request time"]]
-  for r in sdb.fastRows(FORTUNE_ALL): rows.add(r)
+  for r in sdb.fastRows(GET_FORTUNE_ALL): rows.add(r)
   rows.sort do (x, y: seq[string]) -> int : cmp(x[1], y[1])
   fortemp(rows)
   
-proc worldRaw(q:string):string  = 
-  if not(q.isDigit()): return "[]"
-  let len = parseInt(q)
+proc getWorld(q:string):Future[string] {.async.} = 
+  var len = if not(q.isDigit()): 1 else: parseInt(q)
+  if len < 1: len = 1 elif len > 500: len = 500
   var sql = ""
-  for i in 0..len: sql &= WORLD_BY_ID & $rand(1000) & ";"
-  let res = waitFor adb.exec(sql)
+  for i in 1..len: sql &= GET_WORLD_BY_ID & $rand(1000) & ";"
+  let res = await adb.exec(sql)
   var txt = "[" & $res[0].getRow()
-  for i in 1..len: txt &= "," & $res[i].getRow()
+  for i in 1..(len-1): txt &= "," & $res[i].getRow()
   return txt & "]"
+
+proc setWorld(q:string):Future[string] {.async.} =
+  var len = if not(q.isDigit()): 1 else: parseInt(q)
+  if len < 1: len = 1 elif len > 500: len = 500
+  var sql = ""
+  for i in 1..len: sql &= GET_WORLD_BY_ID & $rand(1000) & ";"
+  let res = await adb.exec(sql)
+  #var row: agp_core.Row #seq[seq[string]]
+  #var row: Row #seq[seq[string]]
+  var txt = "["
+  var ins = ""
+  for i in 0..(len-1): 
+    var row = res[i].getRow()
+    #echo "Before:", $row
+    row[1] = $rand(1000)
+    #echo "After: ", $row
+    ins &= ";update world set randomNumber = " & row[1] & " where id = " & row[0]
+    txt &= $row & ","
+  txt[txt.len-1] = ']' 
+  ins[0] = ' '
+  #echo ins
+  discard adb.exec(ins)
+  return txt
 
 let w = initWhip()
 
 const JSON_DATA = """{"message": "Hello World!"}"""
 const TEXT_DATA = "Hello World!"
+#let JSON_DATA = %{"message": %"Hello World!"}
 
 w.onGet "/json", (r:Wreq) => r.json(JSON_DATA)
 w.onGet "/plaintext", (r:Wreq) => r.send(TEXT_DATA)
 w.onGet "/fortunes",  (r:Wreq) => r.html(fortunes())
 w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(1000)))
-w.onGet "/queries",(r:Wreq) => r.json(worldRaw(r.query("queries")))
+#w.onGet "/db",  proc (r:Wreq) {.async} = discard r.json($((await adb.exec(GET_WORLD_BY_ID & $rand(1000)))[0].getRow()))
+w.onGet "/queries",proc (r:Wreq) {.async.} = discard r.json(await getWorld(r.query("queries")))
+w.onGet "/updates",proc (r:Wreq) {.async.} = discard r.json(await setWorld(r.query("queries")))
 
 w.start(8080)
