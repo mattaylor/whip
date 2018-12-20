@@ -1,6 +1,8 @@
 import ../whip, sugar, templates, strformat, asyncdispatch, asyncpg, algorithm, random, db_postgres, strutils
 {.checks: off, optimization: speed.}
 
+asyncdispatch.setGlobalDispatcher(nil)
+
 var sdb = open("localhost", "mtaylor", "", "empower")
 var adb = newPool()
 
@@ -56,6 +58,7 @@ proc getWorld(q:string):Future[string] {.async.} =
   let res = await adb.exec(sql)
   var txt = "[" & $res[0].getRow()
   for i in 1..(len-1): txt &= "," & $res[i].getRow()
+  #close(res)
   return txt & "]"
 
 proc setWorld(q:string):Future[string] {.async.} =
@@ -75,10 +78,10 @@ proc setWorld(q:string):Future[string] {.async.} =
     #echo "After: ", $row
     ins &= ";update world set randomNumber = " & row[1] & " where id = " & row[0]
     txt &= $row & ","
+  #res.close()
   txt[txt.len-1] = ']' 
   ins[0] = ' '
-  #echo ins
-  discard adb.exec(ins)
+  discard(await adb.exec(ins))#.close()
   return txt
 
 let w = initWhip()
@@ -90,9 +93,11 @@ const TEXT_DATA = "Hello World!"
 w.onGet "/json", (r:Wreq) => r.json(JSON_DATA)
 w.onGet "/plaintext", (r:Wreq) => r.send(TEXT_DATA)
 w.onGet "/fortunes",  (r:Wreq) => r.html(fortunes())
-w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(1000)))
+#w.onGet "/db",  (r:Wreq) => r.json($sdb.getRow(worldById, rand(1000)))
+w.onGet "/db",  proc (r:Wreq) {.async.} = discard r.json($sdb.getRow(worldById, rand(1000)))
 #w.onGet "/db",  proc (r:Wreq) {.async} = discard r.json($((await adb.exec(GET_WORLD_BY_ID & $rand(1000)))[0].getRow()))
 w.onGet "/queries",proc (r:Wreq) {.async.} = discard r.json(await getWorld(r.query("queries")))
 w.onGet "/updates",proc (r:Wreq) {.async.} = discard r.json(await setWorld(r.query("queries")))
 
 w.start(8080)
+
