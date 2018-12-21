@@ -7,10 +7,10 @@ runBench () {
   pid=$!
   sleep 2
   echo -e "\nBenchmarking $1\n"
-  #for path in plaintext json db "queries?queries=10" # updates?queries=10
-  for path in plaintext queries\?queries\=10
+  for path in plaintext json db queries?queries=10  updates?queries=10
+  #for path in plaintext queries\?queries\=10
   do
-    wrk -d 5s -s pipeline.lua http://localhost:8080/$path -- 40
+    wrk -c 200 -t 1 -d 10s -s pipeline.lua http://localhost:8080/$path -- 40
     #wrk -d 5s http://localhost:8080/$path
     echo 
   done

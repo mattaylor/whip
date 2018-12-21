@@ -6,6 +6,7 @@ type Norm = ref object of RootObj
 func byId(My: typedesc, id:int): string = 
   &"select * from {My} where id = {id}"
 
+
 #func load(My: typedesc, row: seq[string]): My = 
 #  My()
 
