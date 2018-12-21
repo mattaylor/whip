@@ -17,17 +17,20 @@ type Whip* = object
 
 proc send*[T](my: Wreq, body: T, head=TEXT_TYPE) {.async,inline,gcsafe.} = my.req.send(Http200, $body, head) 
 
-proc send*[T](my: Wreq, body: Future[T], head=TEXT_TYPE) {.async,inline,gcsafe.} = my.send(await(body), head) 
+proc send*[T](my: Wreq, body: Future[T], head=TEXT_TYPE) {.async,inline,gcsafe.} = asyncCheck my.send(await(body), head) 
 
 proc html*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, HTML_TYPE)
 
-proc json*[T](my: Wreq, body: Future[T]) {.async,inline,gcsafe.} = discard my.json(await(body))
+proc html*(my: Wreq, body: Future[string]) {.async,inline,gcsafe.} =  my.req.send(Http200, await(body), HTML_TYPE)
 
 proc json*(my: Wreq, body: JsonNode) {.async,inline,gcsafe.} =  my.req.send(Http200, $body, JSON_TYPE)
 
+proc json*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
+
+proc json*(my: Wreq, body: Future[string]) {.async,inline,gcsafe.} = my.req.send(Http200, await(body), JSON_TYPE)
+
 proc json*[T](my: Wreq, body: T) {.async,inline,gcsafe.} =  my.req.send(Http200, $(%body), JSON_TYPE)
 
-proc json*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
 
 func `%`*(t : StringTableRef): JsonNode =
   var o = newJObject()

@@ -1,17 +1,18 @@
 #! /bin/bash
 
-apps="empower"
+apps="whipower fastpower"
 build=0
 runBench () {
   ./$1 > /dev/null 2>&1 &
   pid=$!
   sleep 2
   echo -e "\nBenchmarking $1\n"
-  for path in plaintext json db queries?queries=10  updates?queries=10
+  #for path in plaintext json db fortune queries?queries=10  update?queries=10
+  for path in plaintext fortune queries?queries=10  update?queries=10
   #for path in plaintext queries\?queries\=10
   do
-    wrk -c 200 -t 1 -d 10s -s pipeline.lua http://localhost:8080/$path -- 40
-    #wrk -d 5s http://localhost:8080/$path
+    #wrk -c 256 -t 8 -d 20s -s pipeline.lua http://localhost:8080/$path -- 40
+    wrk -d 5s http://localhost:8080/$path
     echo 
   done
   kill -9 $pid
