@@ -7,9 +7,9 @@ runBench () {
   pid=$!
   sleep 2
   echo -e "\nBenchmarking $1\n"
-  for path in text # text/$1 json json/$1
+  for path in text text/$1 json/$1
   do
-    wrk http://localhost:8080/$path
+    wrk http://localhost:8080/$path | grep -E 'Requests/sec|Non-2xx|Running|SocketErrors'
     echo 
   done
   kill -9 $pid

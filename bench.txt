@@ -1,0 +1,81 @@
+
+Benchmarking whipit
+
+Running 10s test @ http://localhost:8080/text
+Requests/sec:  68952.74
+
+Running 10s test @ http://localhost:8080/text/whipit
+Requests/sec:  60354.62
+
+Running 10s test @ http://localhost:8080/json/whipit
+Requests/sec:  54346.02
+
+------------------------------------------
+
+Benchmarking beastit
+
+Running 10s test @ http://localhost:8080/text
+Requests/sec:  72605.23
+
+Running 10s test @ http://localhost:8080/text/beastit
+  Non-2xx or 3xx responses: 745101
+Requests/sec:  73775.16
+
+Running 10s test @ http://localhost:8080/json/beastit
+  Non-2xx or 3xx responses: 716523
+Requests/sec:  70941.02
+
+------------------------------------------
+
+Benchmarking jestit
+
+Running 10s test @ http://localhost:8080/text
+Requests/sec:  56062.56
+
+Running 10s test @ http://localhost:8080/text/jestit
+Requests/sec:  15347.99
+
+Running 10s test @ http://localhost:8080/json/jestit
+Requests/sec:  15489.48
+
+------------------------------------------
+
+Benchmarking mofuit
+
+Running 10s test @ http://localhost:8080/text
+Requests/sec:   8506.29
+
+Running 10s test @ http://localhost:8080/text/mofuit
+Requests/sec:   8156.27
+
+Running 10s test @ http://localhost:8080/json/mofuit
+Requests/sec:   7635.54
+
+------------------------------------------
+
+Benchmarking gingonit
+
+Running 10s test @ http://localhost:8080/text
+Requests/sec:  53611.44
+
+Running 10s test @ http://localhost:8080/text/gingonit
+Requests/sec:  49493.46
+
+Running 10s test @ http://localhost:8080/json/gingonit
+Requests/sec:  52145.35
+
+------------------------------------------
+
+Benchmarking fastit
+
+Running 10s test @ http://localhost:8080/text
+Requests/sec:  82064.62
+
+Running 10s test @ http://localhost:8080/text/fastit
+Requests/sec:  83367.76
+
+Running 10s test @ http://localhost:8080/json/fastit
+  Non-2xx or 3xx responses: 839088
+Requests/sec:  83078.25
+
+------------------------------------------

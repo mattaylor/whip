@@ -2,7 +2,7 @@ import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest, table
 
 const TEXT_TYPE* = "Content-Type: text/plain"
 const JSON_TYPE* = "Content-Type: application/json"
-const HTML_TYPE* = "Content-Type: text/html"
+const HTML_TYPE* = "Content-Type: text/html; charset=UTF-8"
 
 type Wreq* = ref object
   req*: Request
@@ -10,26 +10,31 @@ type Wreq* = ref object
   args: RoutingArgs
 
 type Handler* = func (r: Wreq):Future[void] {.inline,closure.}
+#type Handler* = func (r: Wreq): {.inline,closure.}
 
 type Whip* = object 
   router: Router[Handler]
   simple: TableRef[HttpMethod, CritBitTree[Handler]]
 
-proc send*[T](my: Wreq, body: T, head=TEXT_TYPE) {.async,inline,gcsafe.} = my.req.send(Http200, $body, head) 
+#proc send*(my: Wreq, body: string, head=TEXT_TYPE):Future[void] {.inline,gcsafe.} = my.req.send(Http200, body, head)
+
+proc send*(my: Wreq, body: string, head=TEXT_TYPE):Future[void] {.inline,gcsafe.} = my.req.send(Http200, body, head)
+
+proc send*[T](my: Wreq, body: T, head=TEXT_TYPE):Future[void] {.inline,gcsafe.} = my.req.send(Http200, $body, head) 
 
 proc send*[T](my: Wreq, body: Future[T], head=TEXT_TYPE) {.async,inline,gcsafe.} = asyncCheck my.send(await(body), head) 
 
-proc html*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, HTML_TYPE)
+proc html*(my: Wreq, body: string):Future[void] {.inline,gcsafe.} =  my.req.send(Http200, body, HTML_TYPE)
 
 proc html*(my: Wreq, body: Future[string]) {.async,inline,gcsafe.} =  my.req.send(Http200, await(body), HTML_TYPE)
 
-proc json*(my: Wreq, body: JsonNode) {.async,inline,gcsafe.} =  my.req.send(Http200, $body, JSON_TYPE)
+proc json*(my: Wreq, body: JsonNode):Future[void] {.inline,gcsafe.} =  my.req.send(Http200, $body, JSON_TYPE)
 
-proc json*(my: Wreq, body: string) {.async,inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
+proc json*(my: Wreq, body: string):Future[void] {.inline,gcsafe.} =  my.req.send(Http200, body, JSON_TYPE)
 
 proc json*(my: Wreq, body: Future[string]) {.async,inline,gcsafe.} = my.req.send(Http200, await(body), JSON_TYPE)
 
-proc json*[T](my: Wreq, body: T) {.async,inline,gcsafe.} =  my.req.send(Http200, $(%body), JSON_TYPE)
+proc json*[T](my: Wreq, body: T):Future[void] {.inline,gcsafe.} =  my.req.send(Http200, $(%body), JSON_TYPE)
 
 
 func `%`*(t : StringTableRef): JsonNode =
