@@ -33,6 +33,6 @@ Running 10s test @ http://localhost:8080/queries?queries=10
 Requests/sec:  11350.36
 
 Running 10s test @ http://localhost:8080/update?queries=10
-Requests/sec:    124.15
+Requests/sec:    5283.15
 
 ------------------------------------------
