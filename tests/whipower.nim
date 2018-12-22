@@ -59,10 +59,10 @@ func fortemp (rows:seq[seq[string]]): string = tmpli html"""
 
 proc fortunes(): Future[string] {.async.} = 
   var res = await db.exec("select id, message from fortune")
-  var rows = res[0].getAllRows()
-  rows.add @[@["0", "Additional fortune added at request time"]]
+  var rows = res[0].getRows(12)
+  rows.add @["0", "Additional fortune added at request time"]
   rows.sort do (x, y: seq[string]) -> int : cmp(x[1], y[1])
-  result = fortemp(rows)
+  return fortemp(rows)
 
 proc getWorld(q:string):Future[apgResult] = 
   var len = parseInt(q)
@@ -82,11 +82,13 @@ proc queries(q:string): Future[string] {.async.} =
 
 proc updates(q:string):Future[string] {.async.} =
   let res = await getWorld(q)
+  var rows = newSeq[seq[string]](res.len)
+  for i in 0..(res.len-1): rows[i] = @[res[i].getRow()[0], $rand(1000)]
   var txt, sql = "["
-  for i in 0..(res.len - 1): 
-    var row = res[i].getRow()
-    row[1] = $rand(1000)
-    sql &= ";EXECUTE setWorldById(" & $row[1] & "," & $row[0] & ")"
+  #echo rows
+  rows.sort do (x, y: seq[string]) -> int : cmp(x[0], y[0])
+  for row in rows:
+    sql &= ";EXECUTE setWorldById(" & row[1] & "," & row[0] & ")"
     txt &= $row & ","
   txt[txt.len-1] = ']' 
   sql[0] = ' '
