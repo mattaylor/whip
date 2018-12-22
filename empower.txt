@@ -2,37 +2,37 @@
 Benchmarking fastpower
 
 Running 10s test @ http://localhost:8080/json
-Requests/sec:  77170.76
+Requests/sec:  75883.00
 
 Running 10s test @ http://localhost:8080/plaintext
-Requests/sec:  79309.11
+Requests/sec:  87931.02
 
 Running 10s test @ http://localhost:8080/fortune
-Requests/sec:  30043.07
+Requests/sec:  31852.30
 
 Running 10s test @ http://localhost:8080/queries?queries=10
-Requests/sec:   5423.25
+Requests/sec:   5357.72
 
 Running 10s test @ http://localhost:8080/update?queries=10
-Requests/sec:   2282.69
+Requests/sec:   2274.38
 
 ------------------------------------------
 
 Benchmarking whipower
 
 Running 10s test @ http://localhost:8080/json
-Requests/sec:  60776.91
+Requests/sec:  70098.06
 
 Running 10s test @ http://localhost:8080/plaintext
-Requests/sec:  68861.02
+Requests/sec:  70161.92
 
 Running 10s test @ http://localhost:8080/fortune
-Requests/sec:  12938.20
+Requests/sec:  12953.60
 
 Running 10s test @ http://localhost:8080/queries?queries=10
-Requests/sec:  11382.91
+Requests/sec:  11350.36
 
 Running 10s test @ http://localhost:8080/update?queries=10
-Requests/sec:   2973.82
+Requests/sec:    124.15
 
 ------------------------------------------

@@ -11,8 +11,8 @@ runBench () {
   for path in json plaintext fortune queries?queries=10 update?queries=10
   #for path in plaintext queries\?queries\=10
   do
-    #wrk -c 256 -t 8 -d 20s -s pipeline.lua http://localhost:8080/$path -- 40
-    wrk http://localhost:8080/$path | grep -E 'Requests/sec|Non-2xx|Running|SocketErrors'
+    wrk -c 256 -t 8 -d 10s -s pipeline.lua http://localhost:8080/$path -- 40 | grep -E 'Requests/sec|Non-2xx|Running|SocketErrors'
+    #wrk http://localhost:8080/$path | grep -E 'Requests/sec|Non-2xx|Running|SocketErrors'
     echo 
   done
   kill -9 $pid

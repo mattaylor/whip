@@ -2,80 +2,80 @@
 Benchmarking whipit
 
 Running 10s test @ http://localhost:8080/text
-Requests/sec:  68952.74
+Requests/sec:  69589.98
 
 Running 10s test @ http://localhost:8080/text/whipit
-Requests/sec:  60354.62
+Requests/sec:  66303.81
 
 Running 10s test @ http://localhost:8080/json/whipit
-Requests/sec:  54346.02
+Requests/sec:  54045.45
 
 ------------------------------------------
 
 Benchmarking beastit
 
 Running 10s test @ http://localhost:8080/text
-Requests/sec:  72605.23
+Requests/sec:  63750.90
 
 Running 10s test @ http://localhost:8080/text/beastit
-  Non-2xx or 3xx responses: 745101
-Requests/sec:  73775.16
+  Non-2xx or 3xx responses: 643617
+Requests/sec:  63724.99
 
 Running 10s test @ http://localhost:8080/json/beastit
-  Non-2xx or 3xx responses: 716523
-Requests/sec:  70941.02
+  Non-2xx or 3xx responses: 696697
+Requests/sec:  68978.46
 
 ------------------------------------------
 
 Benchmarking jestit
 
 Running 10s test @ http://localhost:8080/text
-Requests/sec:  56062.56
+Requests/sec:  52639.47
 
 Running 10s test @ http://localhost:8080/text/jestit
-Requests/sec:  15347.99
+Requests/sec:  15139.72
 
 Running 10s test @ http://localhost:8080/json/jestit
-Requests/sec:  15489.48
+Requests/sec:  15333.27
 
 ------------------------------------------
 
 Benchmarking mofuit
 
 Running 10s test @ http://localhost:8080/text
-Requests/sec:   8506.29
+Requests/sec:   8638.71
 
 Running 10s test @ http://localhost:8080/text/mofuit
-Requests/sec:   8156.27
+Requests/sec:   8589.31
 
 Running 10s test @ http://localhost:8080/json/mofuit
-Requests/sec:   7635.54
+Requests/sec:   7423.31
 
 ------------------------------------------
 
 Benchmarking gingonit
 
 Running 10s test @ http://localhost:8080/text
-Requests/sec:  53611.44
+Requests/sec:  52937.60
 
 Running 10s test @ http://localhost:8080/text/gingonit
-Requests/sec:  49493.46
+Requests/sec:  55392.77
 
 Running 10s test @ http://localhost:8080/json/gingonit
-Requests/sec:  52145.35
+Requests/sec:  50035.03
 
 ------------------------------------------
 
 Benchmarking fastit
 
 Running 10s test @ http://localhost:8080/text
-Requests/sec:  82064.62
+Requests/sec:  82707.49
 
 Running 10s test @ http://localhost:8080/text/fastit
-Requests/sec:  83367.76
+Requests/sec:  86063.90
 
 Running 10s test @ http://localhost:8080/json/fastit
-  Non-2xx or 3xx responses: 839088
-Requests/sec:  83078.25
+  Non-2xx or 3xx responses: 855368
+Requests/sec:  84687.57
 
 ------------------------------------------
