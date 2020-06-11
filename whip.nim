@@ -1,4 +1,4 @@
-import URI, options, critbits, packedJson, asyncdispatch, httpbeast, nest,
+import URI, options, critbits, packedjson, asyncdispatch, httpbeast, nest,
     tables, httpcore, strutils, strtabs
 
 const TEXT_TYPE* = "Content-Type: text/plain"
